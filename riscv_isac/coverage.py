@@ -42,7 +42,7 @@ class archState:
     Defines the architectural state of the RISC-V device.
     '''
 
-    def __init__ (self, xlen, flen):
+    def __init__ (self, xlen, flen, mxlen):
         '''
         Class constructor
 
@@ -63,6 +63,8 @@ class archState:
 
         if xlen == 32:
             self.x_rf = ['00000000']*32
+            self.csr = ['00000000']*4096
+            self.csr[int('f')]
         else:
             self.x_rf = ['0000000000000000']*32
 
@@ -72,7 +74,29 @@ class archState:
         else:
             self.f_rf = ['0000000000000000']*32
             self.fcsr = 0
+        
+        if mxlen == 32:
+            self.csr = ['00000000']*4096
+            self.csr[int('301',16)] = '40000000' # misa
+        elif mxlen == 64:
+            self.csr = ['0000000000000000']*4096
+            self.csr[int('301',16)] = '8000000000000000' # misa
+        else:
+            self.csr = ['00000000000000000000000000000000']*4096
+            self.csr[int('301',16)] = 'C0000000000000000000000000000000' # misa
+        
+        self.csr[int('F11',16)] = '00000000' # mvendorid
+        self.csr[int('306',16)] = '00000000' # mcounteren
+        self.csr[int('B00',16)] = '0000000000000000' # mcycle
+        self.csr[int('B02',16)] = '0000000000000000' # minstret
+        for i in range(29): # mphcounter 3-31, 3h-31h
+            self.csr[int('B03',16)+i] = '0000000000000000'
+            self.csr[int('B83',16)+i] = '00000000'
+        self.csr[int('320',16)] = '00000000' # mcounterinhibit
+        self.csr[int('B80',16)] = '00000000' # mcycleh
+        self.csr[int('B82',16)] = '00000000' # minstreth
 
+        ## mtime, mtimecmp => 64 bits, platform defined memory mapping
         self.pc = 0
 
 class statistics:
