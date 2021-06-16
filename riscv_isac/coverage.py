@@ -42,7 +42,7 @@ class archState:
     Defines the architectural state of the RISC-V device.
     '''
 
-    def __init__ (self, xlen, flen, mxlen):
+    def __init__ (self, xlen, flen):
         '''
         Class constructor
 
@@ -64,9 +64,11 @@ class archState:
         if xlen == 32:
             self.x_rf = ['00000000']*32
             self.csr = ['00000000']*4096
-            self.csr[int('f')]
+            self.csr[int('301',16)] = '40000000' # misa
         else:
             self.x_rf = ['0000000000000000']*32
+            self.csr = ['0000000000000000']*4096
+            self.csr[int('301',16)] = '8000000000000000' # misa
 
         if flen == 32:
             self.f_rf = ['00000000']*32
@@ -75,15 +77,9 @@ class archState:
             self.f_rf = ['0000000000000000']*32
             self.fcsr = 0
         
-        if mxlen == 32:
-            self.csr = ['00000000']*4096
-            self.csr[int('301',16)] = '40000000' # misa
-        elif mxlen == 64:
-            self.csr = ['0000000000000000']*4096
-            self.csr[int('301',16)] = '8000000000000000' # misa
-        else:
-            self.csr = ['00000000000000000000000000000000']*4096
-            self.csr[int('301',16)] = 'C0000000000000000000000000000000' # misa
+        # else: xlen=128
+        #     self.csr = ['00000000000000000000000000000000']*4096
+        #     self.csr[int('301',16)] = 'C0000000000000000000000000000000' # misa
         
         self.csr[int('F11',16)] = '00000000' # mvendorid
         self.csr[int('306',16)] = '00000000' # mcounteren
@@ -98,7 +94,7 @@ class archState:
 
         ## mtime, mtimecmp => 64 bits, platform defined memory mapping
         self.pc = 0
-
+        
 class statistics:
     '''
     Class for holding statistics used for Data propagation report
