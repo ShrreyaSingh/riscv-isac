@@ -36,6 +36,47 @@ unsgn_rs2 = ['bgeu', 'bltu', 'sltiu', 'sltu', 'sll', 'srl', 'sra','mulhu',\
         'clmulh','andn','orn','xnor','pack','packh','packu','packuw','packw',\
         'xperm.n','xperm.b', 'aes32esmi', 'aes32esi', 'aes32dsmi', 'aes32dsi',\
         'sha512sum1r','sha512sum0r','sha512sig1l','sha512sig1h','sha512sig0l','sha512sig0h']
+m_mode={
+            "mvendorid":int('F11',16),
+            "marchid":int('F12',16),
+            "mimpid":int('F13',16),
+            "mhartid":int('F14',16),
+            "mstatus":int('300',16),
+            "misa":int('301',16),
+            "medeleg":int('302',16),
+            "mideleg":int('303',16),
+            "mie":int('304',16),
+            "mtvec":int('305',16),
+            "mcounteren":int('306',16),
+            "mscratch":int('340',16),
+            "mepc":int('341',16),
+            "mcause":int('342',16),
+            "mtval":int('343',16),
+            "mip":int('344',16),
+            "pmpcfg0":int('3A0',16),
+            "pmpcfg1":int('3A1',16),
+            "pmpcfg2":int('3A2',16),
+            "pmpcfg3":int('3A3',16),
+            "mcycle":int('B00',16),
+            "minstret":int('B02',16),
+            "mcycleh":int('B80',16),
+            "minstreth":int('B82',16),
+            "mcountinhibit":int('320',16),
+            "tselect":int('7A0',16),
+            "tdata1":int('7A1',16),
+            "tdata2":int('7A2',16),
+            "tdata3":int('7A3',16),
+            "dcsr":int('7B0',16),
+            "dpc":int('7B1',16),
+            "dscratch0":int('7B2',16),
+            "dscratch1":int('7B3',16)
+        }
+for i in range(16):
+    m_mode["pmpaddr"+str(i)] = int('3B0',16)+i
+for i in range(3,32):
+    m_mode["mhpmcounter"+str(i)] = int('B03',16) + (i-3)
+    m_mode["mhpmcounter"+str(i)+"h"] = int('B83',16) + (i-3)
+    m_mode["mhpmevent"+str(i)] = int('323',16) + (i-3)
 
 class archState:
     '''
