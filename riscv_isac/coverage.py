@@ -77,7 +77,7 @@ for i in range(3,32):
     m_mode["mhpmcounter"+str(i)] = int('B03',16) + (i-3)
     m_mode["mhpmcounter"+str(i)+"h"] = int('B83',16) + (i-3)
     m_mode["mhpmevent"+str(i)] = int('323',16) + (i-3)
-
+    
 class archState:
     '''
     Defines the architectural state of the RISC-V device.
@@ -132,10 +132,10 @@ class archState:
         self.csr[int('320',16)] = '00000000' # mcounterinhibit
         self.csr[int('B80',16)] = '00000000' # mcycleh
         self.csr[int('B82',16)] = '00000000' # minstreth
-
+        
         ## mtime, mtimecmp => 64 bits, platform defined memory mapping
         self.pc = 0
-        
+
 class statistics:
     '''
     Class for holding statistics used for Data propagation report
@@ -287,6 +287,8 @@ def compute_per_line(instr, mnemonic, commitvalue, cgf, xlen, addr_pairs,  sig_a
     rs3_type = 'f'
     rd_type = 'x'
 
+    csr_addr = 0
+
     # create signed/unsigned conversion params
     if xlen == 32:
         unsgn_sz = '>I'
@@ -330,9 +332,16 @@ def compute_per_line(instr, mnemonic, commitvalue, cgf, xlen, addr_pairs,  sig_a
         imm_val = instr.imm
     if instr.shamt is not None:
         imm_val = instr.shamt
-
+    
+    if instr.csr is not None:
+        csr_addr = instr.csr
+    
+    if instr.instr_name in ['csrrs', 'csrrw', 'csrrc']:
+        rs1_val = struct.unpack(unsgn_sz, bytes.fromhex(arch_state.x_rf[rs1]))[0]
+    elif instr.instr_name in ['csrrwi', 'csrrsi', 'csrrci']:
+        rs1_val = instr.zimm
     # special value conversion based on signed/unsigned operations
-    if instr.instr_name in unsgn_rs1:
+    elif instr.instr_name in unsgn_rs1:
         rs1_val = struct.unpack(unsgn_sz, bytes.fromhex(arch_state.x_rf[rs1]))[0]
     elif rs1_type == 'x':
         rs1_val = struct.unpack(sgn_sz, bytes.fromhex(arch_state.x_rf[rs1]))[0]
@@ -351,6 +360,32 @@ def compute_per_line(instr, mnemonic, commitvalue, cgf, xlen, addr_pairs,  sig_a
         rs2_val = struct.unpack(sgn_sz, bytes.fromhex(arch_state.f_rf[rs2]))[0]
         if instr.instr_name in ["fadd.s","fsub.s","fmul.s","fdiv.s","fmadd.s","fmsub.s","fnmadd.s","fnmsub.s","fmax.s","fmin.s","feq.s","flt.s","fle.s","fsgnj.s","fsgnjn.s","fsgnjx.s"]:
             rs2_val = '0x' + (arch_state.f_rf[rs2]).lower()
+
+    # Updating CSRs
+    if instr.instr_name in ['csrrs', 'csrrsi']:
+        if (rs1 != 0 and instr.zimm!=0):
+            csr_value = struct.unpack(unsgn_sz, bytes.fromhex(arch_state.csr[csr_addr]))[0]
+            csr_value = csr_value | rs1_val
+            if(xlen==32):
+                arch_state.csr[csr_addr] = '{:08x}'.format(csr_value)
+            else:
+                arch_state.csr[csr_addr] = '{:016x}'.format(csr_value)
+
+    if instr.instr_name in ['csrrw', 'csrrwi']:
+        if (rs1 != 0 and instr.zimm!=0):
+            if(xlen==32):
+                arch_state.csr[csr_addr] = '{:08x}'.format(rs1_val)
+            else:
+                arch_state.csr[csr_addr] = '{:016x}'.format(rs1_val)
+    
+    if instr.instr_name in ['csrrc', 'csrrci']:
+        if (rs1 != 0 and instr.zimm!=0):
+            csr_value = struct.unpack(unsgn_sz, bytes.fromhex(arch_state.csr[csr_addr]))[0]
+            csr_value = csr_value & (~rs1_val)
+            if(xlen==32):
+                arch_state.csr[csr_addr] = '{:08x}'.format(csr_value)
+            else:
+                arch_state.csr[csr_addr] = '{:016x}'.format(csr_value)
 
     if instr.instr_name in ["fmadd.s","fmsub.s","fnmadd.s","fnmsub.s"]:
         rs3_val = '0x' + (arch_state.f_rf[rs3]).lower()
