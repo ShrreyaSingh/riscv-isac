@@ -57,5 +57,5 @@ class c_sail(spec.ParserSpec):
             reg_commit = self.extractRegisterCommitVal(line)
             csr_commit = self.extractCsrCommitVal(line)
             instrObj = instructionObject(instr, 'None', addr, reg_commit = reg_commit, csr_commit = csr_commit, mnemonic = mnemonic )
-            # print(instr, addr, mnemonic, reg_commit, csr_commit)
+           
             yield instrObj
