@@ -599,9 +599,9 @@ def compute_per_line(instr, mnemonic, commitvalue, cgf, xlen, addr_pairs,  sig_a
     csr_commit = instr.csr_commit
     if csr_commit is not None:
         if(xlen==32):
-            arch_state.csr[m_mode(csr_commit[1])] = csr_commit[2][7:]
+            arch_state.csr[m_mode[csr_commit[1]]] = csr_commit[2][7:]
         else:
-            arch_state.csr[m_mode(csr_commit[1])] = csr_commit[2]
+            arch_state.csr[m_mode[csr_commit[1]]] = csr_commit[2]
 
 
     return cgf
