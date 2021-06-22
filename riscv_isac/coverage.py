@@ -36,7 +36,7 @@ unsgn_rs2 = ['bgeu', 'bltu', 'sltiu', 'sltu', 'sll', 'srl', 'sra','mulhu',\
         'clmulh','andn','orn','xnor','pack','packh','packu','packuw','packw',\
         'xperm.n','xperm.b', 'aes32esmi', 'aes32esi', 'aes32dsmi', 'aes32dsi',\
         'sha512sum1r','sha512sum0r','sha512sig1l','sha512sig1h','sha512sig0l','sha512sig0h']
-m_mode={
+csr_regs={
             "mvendorid":int('F11',16),
             "marchid":int('F12',16),
             "mimpid":int('F13',16),
@@ -69,14 +69,26 @@ m_mode={
             "dcsr":int('7B0',16),
             "dpc":int('7B1',16),
             "dscratch0":int('7B2',16),
-            "dscratch1":int('7B3',16)
+            "dscratch1":int('7B3',16),
+            "sstatus": int('100',16),
+            "sedeleg": int('102',16),
+            "sideleg": int('103',16),
+            "sie": int('104',16),
+            "stvec": int('105',16),
+            "scounteren": int('106',16),
+            "sscratch": int('140',16),
+            "sepc": int('141',16),
+            "scause": int('142',16),
+            "stval": int('143',16),
+            "sip": int('144',16),
+            "satp": int('180',16)
         }
 for i in range(16):
-    m_mode["pmpaddr"+str(i)] = int('3B0',16)+i
+    csr_regs["pmpaddr"+str(i)] = int('3B0',16)+i
 for i in range(3,32):
-    m_mode["mhpmcounter"+str(i)] = int('B03',16) + (i-3)
-    m_mode["mhpmcounter"+str(i)+"h"] = int('B83',16) + (i-3)
-    m_mode["mhpmevent"+str(i)] = int('323',16) + (i-3)
+    csr_regs["mhpmcounter"+str(i)] = int('B03',16) + (i-3)
+    csr_regs["mhpmcounter"+str(i)+"h"] = int('B83',16) + (i-3)
+    csr_regs["mhpmevent"+str(i)] = int('323',16) + (i-3)
     
 class archState:
     '''
@@ -93,7 +105,7 @@ class archState:
         :type xlen: int
         :type flen: int
 
-        Currently defines the integer and floating point register files the
+        Currently defines the integer, floating point register files and CSRs the
         width of which is defined by the xlen and flen parameters. These are
         implemented as an array holding the hexadecimal representations of the
         values as string.
@@ -118,10 +130,7 @@ class archState:
             self.f_rf = ['0000000000000000']*32
             self.fcsr = 0
         
-        # else: xlen=128
-        #     self.csr = ['00000000000000000000000000000000']*4096
-        #     self.csr[int('301',16)] = 'C0000000000000000000000000000000' # misa
-        
+        # M-Mode CSRs
         self.csr[int('F11',16)] = '00000000' # mvendorid
         self.csr[int('306',16)] = '00000000' # mcounteren
         self.csr[int('B00',16)] = '0000000000000000' # mcycle
@@ -134,6 +143,9 @@ class archState:
         self.csr[int('B82',16)] = '00000000' # minstreth
         
         ## mtime, mtimecmp => 64 bits, platform defined memory mapping
+
+        # S-Mode CSRs
+        self.csr[int('106',16)] = '00000000' # scounteren
         self.pc = 0
 
 class statistics:
@@ -256,26 +268,27 @@ def twos_complement(val,bits):
         val = val - (1 << bits)
     return val
 
-def compute_per_line(instr, mnemonic, commitvalue, cgf, xlen, addr_pairs,  sig_addrs):
+def compute_per_line(instr, cgf, xlen, addr_pairs,  sig_addrs):
     '''
     This function checks if the current instruction under scrutiny matches a
     particular coverpoint of interest. If so, it updates the coverpoints and
     return the same.
 
     :param instr: an instructionObject of the single instruction currently parsed
-    :param commitvalue: a tuple containing the register to be updated and the value it should be updated with
     :param cgf: a cgf against which coverpoints need to be checked for.
     :param xlen: Max xlen of the trace
     :param addr_pairs: pairs of start and end addresses for which the coverage needs to be updated
 
     :type instr: :class:`instructionObject`
-    :type commitvalue: (str, str)
     :type cgf: dict
     :type xlen: int
     :type addr_pairs: (int, int)
     '''
     global arch_state
     global stats
+
+    mnemonic = instr.mnemonic
+    commitvalue = instr.reg_commit
 
     # assign default values to operands
     rs1 = 0
@@ -333,20 +346,6 @@ def compute_per_line(instr, mnemonic, commitvalue, cgf, xlen, addr_pairs,  sig_a
     if instr.shamt is not None:
         imm_val = instr.shamt
     
-    # if instr.csr is not None:
-    #     csr_addr = instr.csr
-    # if instr.instr_name in ['csrrwi']:
-    #     rs1_val = instr.zimm
-    #     if(xlen==32):
-    #         arch_state.csr[csr_addr] = '{:08x}'.format(rs1_val)
-    #     else:
-    #         arch_state.csr[csr_addr] = '{:016x}'.format(rs1_val)
-    
-    # if instr.instr_name in ['csrrs', 'csrrw', 'csrrc']:
-    #     rs1_val = struct.unpack(unsgn_sz, bytes.fromhex(arch_state.x_rf[rs1]))[0]
-    # elif instr.instr_name in ['csrrwi', 'csrrsi', 'csrrci']:
-    #     rs1_val = instr.zimm
-
     # special value conversion based on signed/unsigned operations
     if instr.instr_name in unsgn_rs1:
         rs1_val = struct.unpack(unsgn_sz, bytes.fromhex(arch_state.x_rf[rs1]))[0]
@@ -367,32 +366,6 @@ def compute_per_line(instr, mnemonic, commitvalue, cgf, xlen, addr_pairs,  sig_a
         rs2_val = struct.unpack(sgn_sz, bytes.fromhex(arch_state.f_rf[rs2]))[0]
         if instr.instr_name in ["fadd.s","fsub.s","fmul.s","fdiv.s","fmadd.s","fmsub.s","fnmadd.s","fnmsub.s","fmax.s","fmin.s","feq.s","flt.s","fle.s","fsgnj.s","fsgnjn.s","fsgnjx.s"]:
             rs2_val = '0x' + (arch_state.f_rf[rs2]).lower()
-
-    # # Updating CSRs
-    # if instr.instr_name in ['csrrs', 'csrrsi']:
-    #     if (rs1 != 0 and instr.zimm!=0):
-    #         csr_value = struct.unpack(unsgn_sz, bytes.fromhex(arch_state.csr[csr_addr]))[0]
-    #         csr_value = csr_value | rs1_val
-    #         if(xlen==32):
-    #             arch_state.csr[csr_addr] = '{:08x}'.format(csr_value)
-    #         else:
-    #             arch_state.csr[csr_addr] = '{:016x}'.format(csr_value)
-
-    # if instr.instr_name in ['csrrw', 'csrrwi']:
-    #     if (rs1 != 0 and instr.zimm!=0):
-    #         if(xlen==32):
-    #             arch_state.csr[csr_addr] = '{:08x}'.format(rs1_val)
-    #         else:
-    #             arch_state.csr[csr_addr] = '{:016x}'.format(rs1_val)
-    
-    # if instr.instr_name in ['csrrc', 'csrrci']:
-    #     if (rs1 != 0 and instr.zimm!=0):
-    #         csr_value = struct.unpack(unsgn_sz, bytes.fromhex(arch_state.csr[csr_addr]))[0]
-    #         csr_value = csr_value & (~rs1_val)
-    #         if(xlen==32):
-    #             arch_state.csr[csr_addr] = '{:08x}'.format(csr_value)
-    #         else:
-    #             arch_state.csr[csr_addr] = '{:016x}'.format(csr_value)
 
     if instr.instr_name in ["fmadd.s","fmsub.s","fnmadd.s","fnmsub.s"]:
         rs3_val = '0x' + (arch_state.f_rf[rs3]).lower()
@@ -600,9 +573,9 @@ def compute_per_line(instr, mnemonic, commitvalue, cgf, xlen, addr_pairs,  sig_a
     if csr_commit is not None:
         for commits in csr_commit:
             if(xlen==32):
-                arch_state.csr[m_mode[commits[1]]] = commits[2][7:]
+                arch_state.csr[csr_regs[commits[1]]] = commits[2][7:]
             else:
-                arch_state.csr[m_mode[commits[1]]] = commits[2]
+                arch_state.csr[csr_regs[commits[1]]] = commits[2]
 
 
     return cgf
@@ -646,11 +619,12 @@ def compute(trace_file, test_name, cgf, parser_name, decoder_name, detailed, xle
     decoder.setup(arch="rv"+str(len))
 
     iterator = iter(parser.__iter__()[0])
-    for instr, mnemonic, addr, commitvalue, csr_commit  in iterator:
+    for instrObj_temp in iterator:
+        instr = instrObj_temp.instr
         if instr is None:
             continue
-        instrObj = (decoder.decode(instr=instr, addr=addr))[0]
-        rcgf = compute_per_line(instrObj, mnemonic, commitvalue, cgf, xlen,
+        instrObj = (decoder.decode(instrObj_temp = instrObj_temp))[0]
+        rcgf = compute_per_line(instrObj, cgf, xlen,
                         addr_pairs, sig_addrs)
 
     rpt_str = gen_report(rcgf, detailed)
