@@ -1246,8 +1246,8 @@ class disassembler():
 
     def parseCompressedInstruction(self, instrObj_temp):
         ''' Parse a compressed instruction
-            Args: instr, addr from ParseInstruction.
-            Returns: (instr_obj)
+            Args: instrObj_temp that contains partially filled data
+            Returns: (instr_obj) with all fields filled
         '''
         instr = instrObj_temp.instr
         opcode = self.FIRST2_MASK & instr
@@ -1261,8 +1261,8 @@ class disassembler():
 
     def parseStandardInstruction(self, instrObj_temp):
         ''' Parse an input line and decode the instruction
-            Args: input_line - Line from the log file
-            Returns: (instr_name, rd, rs1, rs2, imm)
+            Args: instrObj_temp that contains partially filled data
+            Returns: (instr_obj) with all fields filled
         '''
         instr = instrObj_temp.instr
         opcode = self.extractOpcode(instr)
@@ -1283,14 +1283,10 @@ class disassembler():
         first_two_bits = self.FIRST2_MASK & instr
         if first_two_bits == 0b11:
             instrObj = self.parseStandardInstruction(instrObj_temp)
-            # instrObj.csr_commit = csr_commit
-            # instrObj.reg_commit = reg_commit
             return instrObj
 
         else:
             instrObj = self.parseCompressedInstruction(instrObj_temp)
-            # instrObj.csr_commit = csr_commit
-            # instrObj.reg_commit = reg_commit
             return instrObj
 
 
