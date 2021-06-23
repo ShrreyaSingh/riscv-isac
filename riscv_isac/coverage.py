@@ -89,7 +89,7 @@ for i in range(3,32):
     csr_regs["mhpmcounter"+str(i)] = int('B03',16) + (i-3)
     csr_regs["mhpmcounter"+str(i)+"h"] = int('B83',16) + (i-3)
     csr_regs["mhpmevent"+str(i)] = int('323',16) + (i-3)
-    
+
 class archState:
     '''
     Defines the architectural state of the RISC-V device.
@@ -395,6 +395,60 @@ def compute_per_line(instr, cgf, xlen, addr_pairs,  sig_addrs):
     if instr.instr_name in ['ld','sd']:
         ea_align = (rs1_val + imm_val) % 8
 
+    local_dict = {
+            "mvendorid": int(arch_state.csr[int('F11',16)]),
+            "marchid":int(arch_state.csr[int('F12',16)]),
+            "mimpid":int(arch_state.csr[int('F13',16)]),
+            "mhartid":int(arch_state.csr[int('F14',16)]),
+            "mstatus":int(arch_state.csr[int('300',16)]),
+            "misa":int(arch_state.csr[int('301',16)]),
+            "medeleg":int(arch_state.csr[int('302',16)]),
+            "mideleg":int(arch_state.csr[int('303',16)]),
+            "mie":int(arch_state.csr[int('304',16)]),
+            "mtvec":int(arch_state.csr[int('305',16)]),
+            "mcounteren":int(arch_state.csr[int('306',16)]),
+            "mscratch":int(arch_state.csr[int('340',16)]),
+            "mepc":int(arch_state.csr[int('341',16)]),
+            "mcause":int(arch_state.csr[int('342',16)]),
+            "mtval":int(arch_state.csr[int('343',16)]),
+            "mip":int(arch_state.csr[int('344',16)]),
+            "pmpcfg0":int(arch_state.csr[int('3A0',16)]),
+            "pmpcfg1":int(arch_state.csr[int('3A1',16)]),
+            "pmpcfg2":int(arch_state.csr[int('3A2',16)]),
+            "pmpcfg3":int(arch_state.csr[int('3A3',16)]),
+            "mcycle":int(arch_state.csr[int('B00',16)]),
+            "minstret":int(arch_state.csr[int('B02',16)]),
+            "mcycleh":int(arch_state.csr[int('B80',16)]),
+            "minstreth":int(arch_state.csr[int('B82',16)]),
+            "mcountinhibit":int(arch_state.csr[int('320',16)]),
+            "tselect":int(arch_state.csr[int('7A0',16)]),
+            "tdata1":int(arch_state.csr[int('7A1',16)]),
+            "tdata2":int(arch_state.csr[int('7A2',16)]),
+            "tdata3":int(arch_state.csr[int('7A3',16)]),
+            "dcsr":int(arch_state.csr[int('7B0',16)]),
+            "dpc":int(arch_state.csr[int('7B1',16)]),
+            "dscratch0":int(arch_state.csr[int('7B2',16)]),
+            "dscratch1":int(arch_state.csr[int('7B3',16)]),
+            "sstatus": int(arch_state.csr[int('100',16)]),
+            "sedeleg": int(arch_state.csr[int('102',16)]),
+            "sideleg": int(arch_state.csr[int('103',16)]),
+            "sie": int(arch_state.csr[int('104',16)]),
+            "stvec": int(arch_state.csr[int('105',16)]),
+            "scounteren":int(arch_state.csr[ int('106',16)]),
+            "sscratch": int(arch_state.csr[int('140',16)]),
+            "sepc": int(arch_state.csr[int('141',16)]),
+            "scause": int(arch_state.csr[int('142',16)]),
+            "stval": int(arch_state.csr[int('143',16)]),
+            "sip": int(arch_state.csr[int('144',16)]),
+            "satp": int(arch_state.csr[int('180',16)])
+            }
+    for i in range(16):
+        local_dict["pmpaddr"+str(i)] = int(arch_state.csr[int('3B0',16)+i])
+    for i in range(3,32):
+        local_dict["mhpmcounter"+str(i)] = int(arch_state.csr[int('B03',16) + (i-3)])
+        local_dict["mhpmcounter"+str(i)+"h"] = int(arch_state.csr[int('B83',16) + (i-3)])
+        local_dict["mhpmevent"+str(i)] = int(arch_state.csr[int('323',16) + (i-3)])
+    
     if enable :
         for cov_labels,value in cgf.items():
             if cov_labels != 'datasets':
@@ -513,6 +567,14 @@ def compute_per_line(instr, cgf, xlen, addr_pairs,  sig_addrs):
                                     stats.ucovpt.append(str(coverpoints))
                                 stats.covpt.append(str(coverpoints))
                                 cgf[cov_labels]['abstract_comb'][coverpoints] += 1
+                    
+                    if 'csr_comb' in value and len(value['csr_comb']) != 0 and instr.csr_commit is not None:
+                        for coverpoints in value['csr_comb']:
+                            if eval(coverpoints, {"__builtins__":None}, local_dict):
+                                if cgf[cov_labels]['csr_comb'][coverpoints] == 0:
+                                    stats.ucovpt.append(str(coverpoints))
+                                stats.covpt.append(str(coverpoints))
+                                cgf[cov_labels]['csr_comb'][coverpoints] += 1
         if stats.covpt:
             if mnemonic is not None :
                 stats.code_seq.append('[' + str(hex(instr.instr_addr)) + ']:' + mnemonic)

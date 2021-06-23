@@ -1,0 +1,2598 @@
+# For Licence details look at https://gitlab.com/incoresemi/riscv-compliance/riscv_ctg/-/blob/master/LICENSE.incore
+
+datasets: 
+  all_regs: &all_regs
+    x0: 0
+    x1: 0
+    x2: 0
+    x3: 0
+    x4: 0
+    x5: 0
+    x6: 0
+    x7: 0
+    x8: 0
+    x9: 0
+    x10: 0
+    x11: 0
+    x12: 0
+    x13: 0
+    x14: 0
+    x15: 0
+    x16: 0
+    x17: 0
+    x18: 0
+    x19: 0
+    x20: 0
+    x21: 0
+    x22: 0
+    x23: 0
+    x24: 0
+    x25: 0
+    x26: 0
+    x27: 0
+    x28: 0
+    x29: 0
+    x30: 0
+    x31: 0
+
+  c_regs: &c_regs
+    x8: 0
+    x9: 0
+    x10: 0
+    x11: 0
+    x12: 0
+    x13: 0
+    x14: 0
+    x15: 0
+
+  all_regs_mx0: &all_regs_mx0
+    x1: 0
+    x2: 0
+    x3: 0
+    x4: 0
+    x5: 0
+    x6: 0
+    x7: 0
+    x8: 0
+    x9: 0
+    x10: 0
+    x11: 0
+    x12: 0
+    x13: 0
+    x14: 0
+    x15: 0
+    x16: 0
+    x17: 0
+    x18: 0
+    x19: 0
+    x20: 0
+    x21: 0
+    x22: 0
+    x23: 0
+    x24: 0
+    x25: 0
+    x26: 0
+    x27: 0
+    x28: 0
+    x29: 0
+    x30: 0
+    x31: 0
+
+  cbfmt_immval_sgn: &cbfmt_immval_sgn
+    'imm_val == (-2**(6-1))': 0
+    'imm_val == 0': 0
+    'imm_val == (2**(6-1)-1)': 0
+    'imm_val == 1': 0
+
+  rfmt_op_comb: &rfmt_op_comb
+    'rs1 == rs2 != rd': 0
+    'rs1 == rd != rs2': 0
+    'rs2 == rd != rs1': 0
+    'rs1 == rs2 == rd': 0
+    'rs1 != rs2  and rs1 != rd and rs2 != rd': 0
+
+  ifmt_op_comb: &ifmt_op_comb
+    'rs1 == rd': 0
+    'rs1 != rd': 0
+
+  sfmt_op_comb: &sfmt_op_comb
+    'rs1 == rs2': 0
+    'rs1 != rs2': 0
+  
+  base_rs1val_sgn: &base_rs1val_sgn
+    'rs1_val == (-2**(xlen-1))': 0
+    'rs1_val == 0': 0
+    'rs1_val == (2**(xlen-1)-1)': 0
+    'rs1_val == 1': 0
+  
+  base_rs2val_sgn: &base_rs2val_sgn
+    'rs2_val == (-2**(xlen-1))': 0
+    'rs2_val == 0': 0
+    'rs2_val == (2**(xlen-1)-1)': 0
+    'rs2_val == 1': 0
+  
+  base_rs1val_unsgn: &base_rs1val_unsgn
+    'rs1_val == 0': 0
+    'rs1_val == (2**(xlen)-1)': 0
+    'rs1_val == 1': 0
+  
+  base_rs2val_unsgn: &base_rs2val_unsgn
+    'rs2_val == 0': 0
+    'rs2_val == (2**(xlen)-1)': 0
+    'rs2_val == 1': 0
+
+  rfmt_val_comb_sgn: &rfmt_val_comb_sgn
+    'rs1_val > 0 and rs2_val > 0': 0
+    'rs1_val > 0 and rs2_val < 0': 0
+    'rs1_val < 0 and rs2_val < 0': 0
+    'rs1_val < 0 and rs2_val > 0': 0
+    'rs1_val == rs2_val': 0
+    'rs1_val != rs2_val': 0
+  
+  rfmt_val_comb_unsgn: &rfmt_val_comb_unsgn
+    'rs1_val > 0 and rs2_val > 0': 0
+    'rs1_val == rs2_val and rs1_val > 0 and rs2_val > 0': 0
+    'rs1_val != rs2_val and rs1_val > 0 and rs2_val > 0': 0
+
+  ifmt_val_comb_sgn: &ifmt_val_comb_sgn
+    'rs1_val == imm_val': 0
+    'rs1_val != imm_val': 0
+    'rs1_val > 0 and imm_val > 0': 0
+    'rs1_val > 0 and imm_val < 0': 0
+    'rs1_val < 0 and imm_val > 0': 0
+    'rs1_val < 0 and imm_val < 0': 0
+  
+  ifmt_val_comb_unsgn: &ifmt_val_comb_unsgn
+    'rs1_val == imm_val and rs1_val > 0 and imm_val > 0': 0
+    'rs1_val != imm_val and rs1_val > 0 and imm_val > 0': 0
+
+  ifmt_base_immval_sgn: &ifmt_base_immval_sgn
+    'imm_val == (-2**(12-1))': 0
+    'imm_val == 0': 0
+    'imm_val == (2**(12-1)-1)': 0
+    'imm_val == 1': 0
+  
+  ifmt_base_immval_unsgn: &ifmt_base_immval_unsgn
+    'imm_val == 0': 0
+    'imm_val == (2**(12)-1)': 0
+    'imm_val == 1': 0
+
+  ifmt_base_shift: &ifmt_base_shift
+    'rs1_val < 0 and imm_val > 0 and imm_val < xlen': 0
+    'rs1_val > 0 and imm_val > 0 and imm_val < xlen': 0
+    'rs1_val < 0 and imm_val == 0': 0
+    'rs1_val > 0 and imm_val == 0': 0
+    'rs1_val < 0 and imm_val == (xlen-1)': 0
+    'rs1_val > 0 and imm_val == (xlen-1)': 0
+    'rs1_val == imm_val and imm_val > 0 and imm_val < xlen': 0
+    'rs1_val == (-2**(xlen-1)) and imm_val >= 0 and imm_val < xlen': 0
+    'rs1_val == 0 and imm_val >= 0 and imm_val < xlen': 0
+    'rs1_val == (2**(xlen-1)-1) and imm_val >= 0 and imm_val < xlen': 0
+    'rs1_val == 1 and imm_val >= 0 and imm_val < xlen': 0
+
+  ifmt_base_shift_32w: &ifmt_base_shift_32w
+    'rs1_val < 0 and imm_val > 0 and imm_val < 32': 0
+    'rs1_val > 0 and imm_val > 0 and imm_val < 32': 0
+    'rs1_val < 0 and imm_val == 0': 0
+    'rs1_val > 0 and imm_val == 0': 0
+    'rs1_val < 0 and imm_val == 31': 0
+    'rs1_val > 0 and imm_val == 31': 0
+    'rs1_val == imm_val and imm_val > 0 and imm_val < 32': 0
+    'rs1_val == (-2**(xlen-1)) and imm_val >= 0 and imm_val < 32': 0
+    'rs1_val == 0 and imm_val >= 0 and imm_val < 32': 0
+    'rs1_val == (2**(xlen-1)-1) and imm_val >= 0 and imm_val < 32': 0
+    'rs1_val == 1 and imm_val >= 0 and imm_val < 32': 0
+
+
+  rfmt_base_shift: &rfmt_base_shift
+    'rs1_val < 0 and rs2_val > 0 and rs2_val < xlen': 0
+    'rs1_val > 0 and rs2_val > 0 and rs2_val < xlen': 0
+    'rs1_val < 0 and rs2_val == 0': 0
+    'rs1_val > 0 and rs2_val == 0': 0
+    'rs1_val == rs2_val and rs2_val > 0 and rs2_val < xlen': 0
+    'rs1_val == (-2**(xlen-1)) and rs2_val >= 0 and rs2_val < xlen': 0
+    'rs1_val == 0 and rs2_val >= 0 and rs2_val < xlen': 0
+    'rs1_val == (2**(xlen-1)-1) and rs2_val >= 0 and rs2_val < xlen': 0
+    'rs1_val == 1 and rs2_val >= 0 and rs2_val < xlen': 0
+
+  bfmt_base_branch_val_align_sgn: &bfmt_base_branch_val_align_sgn
+    'rs1_val > 0 and rs2_val > 0 and imm_val & 0x03 == 0': 0
+    'rs1_val > 0 and rs2_val < 0 and imm_val & 0x03 == 0': 0
+    'rs1_val < 0 and rs2_val < 0 and imm_val & 0x03 == 0': 0
+    'rs1_val < 0 and rs2_val > 0 and imm_val & 0x03 == 0': 0
+    'rs1_val == rs2_val and imm_val > 0 and imm_val & 0x03 == 0': 0
+    'rs1_val == rs2_val and imm_val < 0 and imm_val & 0x03 == 0': 0
+    'rs1_val > rs2_val and imm_val > 0 and imm_val & 0x03 == 0': 0
+    'rs1_val > rs2_val and imm_val < 0 and imm_val & 0x03 == 0': 0
+    'rs1_val < rs2_val and imm_val > 0 and imm_val & 0x03 == 0': 0
+    'rs1_val < rs2_val and imm_val < 0 and imm_val & 0x03 == 0': 0
+  
+  bfmt_base_branch_val_align_unsgn: &bfmt_base_branch_val_align_unsgn
+    'rs1_val > 0 and rs2_val > 0': 0
+    'rs1_val > 0 and rs2_val > 0 and rs1_val == rs2_val and imm_val > 0': 0
+    'rs1_val > 0 and rs2_val > 0 and rs1_val == rs2_val and imm_val < 0': 0
+    'rs1_val > 0 and rs2_val > 0 and rs1_val > rs2_val and imm_val > 0 ': 0
+    'rs1_val > 0 and rs2_val > 0 and rs1_val > rs2_val and imm_val < 0 ': 0
+    'rs1_val > 0 and rs2_val > 0 and rs1_val < rs2_val and imm_val > 0 ': 0
+    'rs1_val > 0 and rs2_val > 0 and rs1_val < rs2_val and imm_val < 0 ': 0
+
+  rs1val_walking: &rs1val_walking
+    'walking_ones("rs1_val", xlen)': 0
+    'walking_zeros("rs1_val", xlen)': 0
+    'alternate("rs1_val",xlen)': 0
+
+  rs2val_walking: &rs2val_walking
+    'walking_ones("rs2_val", xlen)': 0
+    'walking_zeros("rs2_val", xlen)': 0
+    'alternate("rs2_val",xlen)': 0
+  
+  ifmt_immval_walking: &ifmt_immval_walking
+    'walking_ones("imm_val", 12)': 0
+    'walking_zeros("imm_val", 12)': 0
+    'alternate("imm_val",12)': 0
+  
+  rs1val_walking_unsgn: &rs1val_walking_unsgn
+    'walking_ones("rs1_val", xlen,False)': 0
+    'walking_zeros("rs1_val", xlen,False)': 0
+    'alternate("rs1_val",xlen,False)': 0
+  
+  rs2val_walking_unsgn: &rs2val_walking_unsgn
+    'walking_ones("rs2_val", xlen,False)': 0
+    'walking_zeros("rs2_val", xlen,False)': 0
+    'alternate("rs2_val",xlen,False)': 0
+
+  crfmt_val_comb_sgn: &crfmt_val_comb_sgn
+    'rs2_val > 0': 0
+    'rs2_val < 0': 0
+
+  cbimm_val_walking: &cbimm_val_walking
+    'walking_ones("imm_val", 6)': 0
+    'walking_zeros("imm_val", 6)': 0
+    'alternate("imm_val",6)': 0
+  
+  ifmt_immval_walking_unsgn: &ifmt_immval_walking_unsgn
+    'walking_ones("imm_val", 12,False)': 0
+    'walking_zeros("imm_val", 12,False)': 0
+    'alternate("imm_val",12,False)': 0
+  
+  csr_regs_zeroes: &csr_regs_zeroes
+    'mvendorid == 0':  0
+    'marchid == 0': 0
+    'mimpid == 0': 0
+    'mhartid == 0': 0
+    'mstatus == 0': 0
+    'misa == 0': 0
+    'medeleg == 0': 0
+    'mideleg == 0': 0
+    'mie == 0': 0
+    'mtvec == 0': 0
+    'mcounteren == 0': 0
+    'mscratch == 0': 0
+    'mepc == 0': 0
+    'mcause == 0': 0
+    'mtval == 0': 0
+    'mip == 0': 0
+    'pmpcfg0 == 0': 0
+    'pmpcfg1 == 0': 0
+    'pmpcfg2 == 0': 0
+    'pmpcfg3 == 0': 0
+    'mcycle == 0': 0
+    'minstret == 0': 0
+    'mcycleh == 0': 0
+    'minstreth == 0': 0
+    'mcountinhibit == 0': 0
+    'tselect == 0': 0
+    'tdata1 == 0': 0
+    'tdata2 == 0': 0
+    'tdata3 == 0': 0
+    'dcsr == 0': 0
+    'dpc == 0': 0
+    'dscratch0 == 0': 0
+    'dscratch1 == 0': 0
+    'sstatus == 0':  0
+    'sedeleg == 0':  0
+    'sideleg == 0':  0
+    'sie == 0':  0
+    'stvec == 0':  0
+    'scounteren == 0': 0
+    'sscratch == 0':  0
+    'sepc == 0':  0
+    'scause == 0':  0
+    'stval == 0':  0
+    'sip == 0':  0
+    'satp == 0':  0 
+    'pmpaddr0 == 0': 0
+    'pmpaddr1 == 0': 0
+    'pmpaddr2 == 0': 0
+    'pmpaddr3 == 0': 0
+    'pmpaddr4 == 0': 0
+    'pmpaddr5 == 0': 0
+    'pmpaddr6 == 0': 0
+    'pmpaddr7 == 0': 0
+    'pmpaddr8 == 0': 0
+    'pmpaddr9 == 0': 0
+    'pmpaddr10 == 0': 0
+    'pmpaddr11 == 0': 0
+    'pmpaddr12 == 0': 0
+    'pmpaddr13 == 0': 0
+    'pmpaddr14 == 0': 0
+    'pmpaddr15 == 0': 0
+    'mhpmcounter3 == 0': 0
+    'mhpmcounter3h == 0': 0
+    'mhpmevent3 == 0': 0
+    'mhpmcounter4 == 0': 0
+    'mhpmcounter4h == 0': 0
+    'mhpmevent4 == 0': 0
+    'mhpmcounter5 == 0': 0
+    'mhpmcounter5h == 0': 0 
+    'mhpmevent5 == 0': 0
+    'mhpmcounter6 == 0': 0
+    'mhpmcounter6h == 0': 0
+    'mhpmevent6 == 0': 0
+    'mhpmcounter7 == 0': 0
+    'mhpmcounter7h == 0': 0
+    'mhpmevent7 == 0': 0
+    'mhpmcounter8 == 0': 0
+    'mhpmcounter8h == 0': 0
+    'mhpmevent8 == 0': 0
+    'mhpmcounter9 == 0': 0
+    'mhpmcounter9h == 0': 0
+    'mhpmevent9 == 0': 0
+    'mhpmcounter10 == 0': 0
+    'mhpmcounter10h == 0': 0
+    'mhpmevent10 == 0': 0
+    'mhpmcounter11 == 0': 0
+    'mhpmcounter11h == 0': 0
+    'mhpmevent11 == 0': 0
+    'mhpmcounter12 == 0': 0
+    'mhpmcounter12h == 0': 0
+    'mhpmevent12 == 0': 0
+    'mhpmcounter13 == 0': 0
+    'mhpmcounter13h == 0': 0
+    'mhpmevent13 == 0': 0
+    'mhpmcounter14 == 0': 0
+    'mhpmcounter14h == 0': 0
+    'mhpmevent14 == 0': 0
+    'mhpmcounter15 == 0': 0
+    'mhpmcounter15h == 0': 0
+    'mhpmevent15 == 0': 0
+    'mhpmcounter16 == 0': 0
+    'mhpmcounter16h == 0': 0
+    'mhpmevent16 == 0': 0
+    'mhpmcounter17 == 0': 0
+    'mhpmcounter17h == 0': 0
+    'mhpmevent17 == 0': 0
+    'mhpmcounter18 == 0': 0
+    'mhpmcounter18h == 0': 0
+    'mhpmevent18 == 0': 0
+    'mhpmcounter19 == 0': 0
+    'mhpmcounter19h == 0': 0
+    'mhpmevent19 == 0': 0
+    'mhpmcounter20 == 0': 0
+    'mhpmcounter20h == 0': 0
+    'mhpmevent20 == 0': 0
+    'mhpmcounter21 == 0': 0
+    'mhpmcounter21h == 0': 0
+    'mhpmevent21 == 0': 0
+    'mhpmcounter22 == 0': 0
+    'mhpmcounter22h == 0': 0
+    'mhpmevent22 == 0': 0
+    'mhpmcounter23 == 0': 0
+    'mhpmcounter23h == 0': 0
+    'mhpmevent23 == 0': 0
+    'mhpmcounter24 == 0': 0
+    'mhpmcounter24h == 0': 0
+    'mhpmevent24 == 0': 0
+    'mhpmcounter25 == 0': 0
+    'mhpmcounter25h == 0': 0
+    'mhpmevent25 == 0': 0
+    'mhpmcounter26 == 0': 0
+    'mhpmcounter26h == 0': 0
+    'mhpmevent26 == 0': 0
+    'mhpmcounter27 == 0': 0
+    'mhpmcounter27h == 0': 0
+    'mhpmevent27 == 0': 0
+    'mhpmcounter28 == 0': 0
+    'mhpmcounter28h == 0': 0
+    'mhpmevent28 == 0': 0
+    'mhpmcounter29 == 0': 0
+    'mhpmcounter29h == 0': 0
+    'mhpmevent29 == 0': 0
+    'mhpmcounter30 == 0': 0
+    'mhpmcounter30h == 0': 0
+    'mhpmevent30 == 0': 0
+    'mhpmcounter31 == 0': 0
+    'mhpmcounter31h == 0': 0
+    'mhpmevent31 == 0': 0           
+
+ecall:
+  config: 
+    - check ISA:=regex(.*I.*); def rvtest_mtrap_routine=True 
+  opcode: 
+    ecall: 0
+  csr_comb:
+    <<: [*csr_regs_zeroes]
+
+ebreak:
+  config: 
+    - check ISA:=regex(.*I.*); def rvtest_mtrap_routine=True 
+  opcode: 
+    ebreak: 0
+  csr_comb:
+    <<: [*csr_regs_zeroes]
+
+fencei:
+  config: 
+    - check ISA:=regex(.*I.*Zifencei.*)
+  opcode: 
+    fence.i: 0
+  csr_comb:
+    <<: [*csr_regs_zeroes]
+
+misalign-lh:
+  cond: check ISA:=regex(.*I.*Zicsr.*)
+  config:
+    - check ISA:=regex(.*I.*); check hw_data_misaligned_support:=True
+    - check ISA:=regex(.*I.*Zicsr.*); check hw_data_misaligned_support:=False; def rvtest_mtrap_routine=True
+  opcode:
+    lh: 0
+  val_comb:
+    'ea_align == 1': 0
+  csr_comb:
+    <<: [*csr_regs_zeroes]
+
+misalign-lhu:
+  config:
+    - check ISA:=regex(.*I.*); check hw_data_misaligned_support:=True
+    - check ISA:=regex(.*I.*Zicsr.*); check hw_data_misaligned_support:=False; def rvtest_mtrap_routine=True
+  cond: check ISA:=regex(.*I.*Zicsr.*)
+  opcode:
+    lhu: 0
+  val_comb:
+    'ea_align == 1': 0
+  csr_comb:
+    <<: [*csr_regs_zeroes]
+
+misalign-lwu:
+  config:
+    - check ISA:=regex(.*I.*); check hw_data_misaligned_support:=True
+    - check ISA:=regex(.*I.*Zicsr.*); check hw_data_misaligned_support:=False; def rvtest_mtrap_routine=True
+  cond: check ISA:=regex(.*64.*I.*Zicsr.*)
+  opcode:
+    lwu: 0
+  val_comb:
+    'ea_align == 1': 0
+    'ea_align == 2': 0
+    'ea_align == 3': 0
+  csr_comb:
+    <<: [*csr_regs_zeroes]
+
+misalign-sd:
+  config:
+    - check ISA:=regex(.*I.*); check hw_data_misaligned_support:=True
+    - check ISA:=regex(.*I.*Zicsr.*); check hw_data_misaligned_support:=False; def rvtest_mtrap_routine=True
+  cond: check ISA:=regex(.*64.*I.*Zicsr.*)
+  opcode:
+    sd: 0
+  val_comb:
+    'ea_align == 1': 0
+    'ea_align == 2': 0
+    'ea_align == 3': 0
+    'ea_align == 4': 0
+    'ea_align == 5': 0
+    'ea_align == 6': 0
+    'ea_align == 7': 0
+  csr_comb:
+    <<: [*csr_regs_zeroes]
+
+misalign-ld:
+  config:
+    - check ISA:=regex(.*I.*); check hw_data_misaligned_support:=True
+    - check ISA:=regex(.*I.*Zicsr.*); check hw_data_misaligned_support:=False; def rvtest_mtrap_routine=True
+  cond: check ISA:=regex(.*64.*I.*)
+  opcode:
+    ld: 0
+  val_comb:
+    'ea_align == 1': 0
+    'ea_align == 2': 0
+    'ea_align == 3': 0
+    'ea_align == 4': 0
+    'ea_align == 5': 0
+    'ea_align == 6': 0
+    'ea_align == 7': 0
+  csr_comb:
+    <<: [*csr_regs_zeroes]
+
+
+misalign-lw:
+  config:
+    - check ISA:=regex(.*I.*); check hw_data_misaligned_support:=True
+    - check ISA:=regex(.*I.*Zicsr.*); check hw_data_misaligned_support:=False; def rvtest_mtrap_routine=True
+  cond: check ISA:=regex(.*I.*Zicsr.*)
+  opcode:
+    lw: 0
+  val_comb:
+    'ea_align == 1': 0
+    'ea_align == 2': 0
+    'ea_align == 3': 0
+  csr_comb:
+    <<: [*csr_regs_zeroes]
+
+
+misalign-sh:
+  config:
+    - check ISA:=regex(.*I.*); check hw_data_misaligned_support:=True
+    - check ISA:=regex(.*I.*Zicsr.*); check hw_data_misaligned_support:=False; def rvtest_mtrap_routine=True
+  cond: check ISA:=regex(.*I.*Zicsr.*)
+  opcode:
+    sh: 0
+  val_comb:
+    'ea_align == 1': 0
+  csr_comb:
+    <<: [*csr_regs_zeroes]
+
+misalign-sw:
+  config:
+    - check ISA:=regex(.*I.*); check hw_data_misaligned_support:=True
+    - check ISA:=regex(.*I.*Zicsr.*); check hw_data_misaligned_support:=False; def rvtest_mtrap_routine=True
+  cond: check ISA:=regex(.*I.*Zicsr.*)
+  opcode:
+    sw: 0
+  val_comb:
+    'ea_align == 1': 0
+    'ea_align == 2': 0
+    'ea_align == 3': 0
+  csr_comb:
+    <<: [*csr_regs_zeroes]
+
+misalign2-jalr:
+  config:
+    - check ISA:=regex(.*I.*C.*)
+    - check ISA:=regex(.*I.*Zicsr.*); check ISA:=regex(^[^C]+$); def rvtest_mtrap_routine=True 
+  cond: check ISA:=regex(.*I.*)
+  opcode:
+    jalr: 0
+  val_comb:
+    'ea_align == 2': 0
+  csr_comb:
+    <<: [*csr_regs_zeroes]
+
+misalign1-jalr:
+  config: 
+    - check ISA:=regex(.*I.*); def rvtest_mtrap_routine=True
+  opcode:
+    jalr: 0
+  val_comb:
+    'ea_align == 1': 0
+  csr_comb:
+    <<: [*csr_regs_zeroes]
+
+misalign-jal:
+  config:
+    - check ISA:=regex(.*I.*C.*)
+    - check ISA:=regex(.*I.*Zicsr.*); check ISA:=regex(^[^C]+$); def rvtest_mtrap_routine=True 
+  cond: check ISA:=regex(.*I.*)
+  opcode:
+    jal: 0
+  val_comb:
+    'ea_align == 2': 0
+  csr_comb:
+    <<: [*csr_regs_zeroes]
+
+misalign-bge:
+  config:
+    - check ISA:=regex(.*I.*C.*)
+    - check ISA:=regex(.*I.*Zicsr.*); check ISA:=regex(^[^C]+$); def rvtest_mtrap_routine=True 
+  cond: check ISA:=regex(.*I.*)
+  opcode:
+    bge: 0
+  val_comb:
+    ' rs1_val>rs2_val and ea_align == 2': 0
+  csr_comb:
+    <<: [*csr_regs_zeroes]
+
+misalign-bgeu:
+  config:
+    - check ISA:=regex(.*I.*C.*)
+    - check ISA:=regex(.*I.*Zicsr.*); check ISA:=regex(^[^C]+$); def rvtest_mtrap_routine=True 
+  cond: check ISA:=regex(.*I.*)
+  opcode:
+    bgeu: 0
+  val_comb:
+    ' rs1_val>rs2_val and ea_align == 2': 0
+  csr_comb:
+    <<: [*csr_regs_zeroes]
+
+misalign-blt:
+  config:
+    - check ISA:=regex(.*I.*C.*)
+    - check ISA:=regex(.*I.*Zicsr.*); check ISA:=regex(^[^C]+$); def rvtest_mtrap_routine=True 
+  cond: check ISA:=regex(.*I.*)
+  opcode:
+    blt: 0
+  val_comb:
+    ' rs1_val<rs2_val and ea_align == 2': 0
+  csr_comb:
+    <<: [*csr_regs_zeroes]
+
+misalign-bltu:
+  config:
+    - check ISA:=regex(.*I.*C.*)
+    - check ISA:=regex(.*I.*Zicsr.*); check ISA:=regex(^[^C]+$); def rvtest_mtrap_routine=True 
+  cond: check ISA:=regex(.*I.*)
+  opcode:
+    bltu: 0
+  val_comb:
+    ' rs1_val<rs2_val and ea_align == 2': 0
+  csr_comb:
+    <<: [*csr_regs_zeroes]
+
+misalign-bne:
+  config:
+    - check ISA:=regex(.*I.*C.*)
+    - check ISA:=regex(.*I.*Zicsr.*); check ISA:=regex(^[^C]+$); def rvtest_mtrap_routine=True 
+  cond: check ISA:=regex(.*I.*)
+  opcode:
+    bne: 0
+  val_comb:
+    ' rs1_val!=rs2_val and ea_align == 2': 0
+  csr_comb:
+    <<: [*csr_regs_zeroes]
+
+misalign-beq:
+  config:
+    - check ISA:=regex(.*I.*C.*)
+    - check ISA:=regex(.*I.*Zicsr.*); check ISA:=regex(^[^C]+$); def rvtest_mtrap_routine=True 
+  cond: check ISA:=regex(.*I.*)
+  opcode:
+    beq: 0
+  val_comb:
+    ' rs1_val==rs2_val and ea_align == 2': 0
+  csr_comb:
+    <<: [*csr_regs_zeroes]
+
+caddi4spn:
+    config: 
+      - check ISA:=regex(.*I.*C.*)
+    opcode: 
+      c.addi4spn: 0
+    rd:
+      <<: *c_regs
+    val_comb:
+      'imm_val > 0' : 0
+      'imm_val == 1020': 0
+      abstract_comb:
+        'walking_ones("imm_val", 8,False,scale_func = lambda x: x*4)': 0
+        'walking_zeros("imm_val", 8,False,scale_func = lambda x: x*4)': 0
+        'alternate("imm_val",8,False,scale_func = lambda x: x*4)': 0
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+clw:
+    config: 
+      - check ISA:=regex(.*I.*C.*)
+    opcode: 
+      c.lw: 0
+    rs1: 
+      <<: *c_regs
+    rd: 
+      <<: *c_regs
+    op_comb:
+        'rs1 == rd': 0
+        'rs1 != rd': 0
+    val_comb:
+        'imm_val > 0': 0
+        'imm_val == 0': 0
+        abstract_comb:
+          'walking_ones("imm_val",5,False, scale_func = lambda x: x*4)': 0
+          'walking_zeros("imm_val",5,False, scale_func = lambda x: x*4)': 0
+          'alternate("imm_val",5, False,scale_func = lambda x: x*4)': 0
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+cld:
+    config: 
+      - check ISA:=regex(.*RV64.*I.*C.*)
+    opcode: 
+      c.ld: 0
+    rs1: 
+      <<: *c_regs
+    rd: 
+      <<: *c_regs
+    op_comb:
+        'rs1 == rd': 0
+        'rs1 != rd': 0
+    val_comb:
+        'imm_val > 0': 0
+        'imm_val == 0': 0
+        abstract_comb:
+          'walking_ones("imm_val",5,False, scale_func = lambda x: x*8)': 0
+          'walking_zeros("imm_val",5,False, scale_func = lambda x: x*8)': 0
+          'alternate("imm_val",5, False,scale_func = lambda x: x*8)': 0
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+csw:
+    config: 
+      - check ISA:=regex(.*I.*C.*)
+    opcode: 
+      c.sw: 0
+    rs1: 
+      <<: *c_regs
+    rs2: 
+      <<: *c_regs
+    op_comb: 
+        'rs1 != rs2': 0
+    val_comb:
+        'imm_val > 0': 0
+        'imm_val == 0': 0
+        <<: [  *base_rs2val_sgn]
+        abstract_comb:
+          <<: [*rs2val_walking]
+          'walking_ones("imm_val",5,False, scale_func = lambda x: x*4)': 0
+          'walking_zeros("imm_val",5,False, scale_func = lambda x: x*4)': 0
+          'alternate("imm_val",5, False,scale_func = lambda x: x*4)': 0
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+csd:
+    config: 
+      - check ISA:=regex(.*RV64.*I.*C.*)
+    opcode: 
+      c.sd: 0
+    rs1: 
+      <<: *c_regs
+    rs2: 
+      <<: *c_regs
+    op_comb:
+        'rs1 != rs2': 0
+    val_comb:
+        'imm_val > 0': 0
+        'imm_val == 0': 0
+        <<: [  *base_rs2val_sgn]
+        abstract_comb:
+          <<: [*rs2val_walking]
+          'walking_ones("imm_val",5,False, scale_func = lambda x: x*8)': 0
+          'walking_zeros("imm_val",5,False, scale_func = lambda x: x*8)': 0
+          'alternate("imm_val",5, False,scale_func = lambda x: x*8)': 0
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+cnop:
+    config: 
+      - check ISA:=regex(.*I.*C.*) 
+    opcode: 
+      c.nop: 0
+    val_comb:
+      abstract_comb:
+        <<: *cbimm_val_walking
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+caddi:
+    config: 
+      - check ISA:=regex(.*I.*C.*)
+    opcode: 
+      c.addi: 0
+    rd:
+      <<: *all_regs_mx0
+    val_comb:
+      <<: [*base_rs1val_sgn, *cbfmt_immval_sgn, *ifmt_val_comb_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking, *cbimm_val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+cjal:
+  config: 
+      - check ISA:=regex(.*RV32.*I.*C.*) 
+  opcode: 
+    c.jal: 0
+  val_comb:
+    'imm_val > 0': 0
+    'imm_val < 0': 0
+    abstract_comb:
+      'walking_ones("imm_val", 11,fltr_func =lambda x: (x>=10 and x<2030) or (x<=-8 and x>-2030),scale_func = lambda x: x*2)': 0
+      'walking_zeros("imm_val", 11,fltr_func =lambda x: (x>=10 and x<2030) or (x<=-8 and x>-2030),scale_func = lambda x: x*2)': 0
+      'alternate("imm_val",11, fltr_func =lambda x: (x>=10 and x<2030) or (x<=-8 and x>-2030) ,scale_func = lambda x: x*2)': 0
+  csr_comb:
+    <<: [*csr_regs_zeroes]
+
+caddiw:
+    config: 
+      - check ISA:=regex(.*RV64.*I.*C.*) 
+    opcode: 
+      c.addiw: 0
+    rd: 
+      <<: *all_regs_mx0
+    val_comb: 
+      'rs1_val == (-2**(xlen-1))': 0
+      'rs1_val == 0': 0
+      'rs1_val == (2**(xlen-1)-1)': 0
+      'rs1_val == 1': 0
+      <<: [*cbfmt_immval_sgn, *ifmt_val_comb_sgn]
+      abstract_comb:
+        'walking_ones("rs1_val", xlen)': 0
+        'walking_zeros("rs1_val", xlen)': 0
+        'alternate("rs1_val",xlen)': 0
+        <<: [*cbimm_val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+cli:
+  config: 
+      - check ISA:=regex(.*I.*C.*) 
+  opcode: 
+    c.li: 0
+  rd:
+    <<: *all_regs
+  val_comb:
+    <<: [*cbfmt_immval_sgn] 
+    abstract_comb:
+      'walking_ones("imm_val", 6)': 0
+      'walking_zeros("imm_val", 6)': 0
+      'alternate("imm_val", 6)': 0
+  csr_comb:
+      <<: [*csr_regs_zeroes]
+
+caddi16sp:
+    config: 
+      - check ISA:=regex(.*I.*C.*)
+    opcode: 
+      c.addi16sp: 0
+    rd:
+      x2: 0
+    val_comb:
+      <<: [*base_rs1val_sgn,*ifmt_val_comb_sgn]
+      'imm_val == -512': 0
+      'imm_val == 496': 0
+      abstract_comb:
+        <<: [*rs1val_walking]
+        'walking_ones("imm_val", 6,True,scale_func = lambda x: x*16)': 0
+        'walking_zeros("imm_val", 6,True,scale_func = lambda x: x*16)': 0
+        'alternate("imm_val",6,True,scale_func = lambda x: x*16)': 0
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+clui:
+  config: 
+    - check ISA:=regex(.*I.*C.*) 
+  opcode: 
+    c.lui: 0
+  rd:
+    x0: 0
+    x1: 0
+    x3: 0
+    x4: 0
+    x5: 0
+    x6: 0
+    x7: 0
+    x8: 0
+    x9: 0
+    x10: 0
+    x11: 0
+    x12: 0
+    x13: 0
+    x14: 0
+    x15: 0
+    x16: 0
+    x17: 0
+    x18: 0
+    x19: 0
+    x20: 0
+    x21: 0
+    x22: 0
+    x23: 0
+    x24: 0
+    x25: 0
+    x26: 0
+    x27: 0
+    x28: 0
+    x29: 0
+    x30: 0
+    x31: 0
+
+  val_comb:
+    'rs1_val > 0 and imm_val > 32': 0
+    'rs1_val > 0 and imm_val < 32 and imm_val !=0 ': 0
+    'rs1_val < 0 and imm_val > 32': 0
+    'rs1_val < 0 and imm_val < 32 and imm_val !=0 ': 0
+    abstract_comb:
+      'walking_ones("imm_val", 6, False)': 0
+      'walking_zeros("imm_val", 6, False)': 0
+      'alternate("imm_val", 6, False)': 0
+  csr_comb:
+    <<: [*csr_regs_zeroes]
+
+csrli:
+  config: 
+      - check ISA:=regex(.*I.*C.*) 
+  opcode: 
+    c.srli: 0
+  rs1:
+    <<: *c_regs
+  val_comb:
+      'rs1_val < 0 and imm_val < xlen': 0
+      'rs1_val > 0 and imm_val < xlen': 0
+      'rs1_val == imm_val and imm_val != 0  and imm_val < xlen': 0
+      'rs1_val == (-2**(xlen-1)) and imm_val != 0 and imm_val < xlen': 0
+      'rs1_val == 0 and imm_val != 0 and imm_val < xlen': 0
+      'rs1_val == (2**(xlen-1)-1) and imm_val != 0 and imm_val < xlen': 0
+      'rs1_val == 1 and imm_val != 0 and imm_val < xlen': 0
+      abstract_comb:
+        <<: [*rs1val_walking]
+        'walking_ones("imm_val", ceil(log(xlen,2)), False)': 0
+        'walking_zeros("imm_val", ceil(log(xlen,2)), False)': 0
+        'alternate("imm_val", ceil(log(xlen,2)), False)': 0
+  csr_comb:
+    <<: [*csr_regs_zeroes]
+
+csrai:
+  config: 
+      - check ISA:=regex(.*I.*C.*) 
+  opcode: 
+    c.srai: 0
+  rs1:
+    <<: *c_regs
+  val_comb:
+      'rs1_val < 0 and imm_val < xlen': 0
+      'rs1_val > 0 and imm_val < xlen': 0
+      'rs1_val == imm_val and imm_val != 0  and imm_val < xlen': 0
+      'rs1_val == (-2**(xlen-1)) and imm_val != 0 and imm_val < xlen': 0
+      'rs1_val == 0 and imm_val != 0 and imm_val < xlen': 0
+      'rs1_val == (2**(xlen-1)-1) and imm_val != 0 and imm_val < xlen': 0
+      'rs1_val == 1 and imm_val != 0 and imm_val < xlen': 0
+      abstract_comb:
+        <<: [*rs1val_walking]
+        'walking_ones("imm_val", ceil(log(xlen,2)), False)': 0
+        'walking_zeros("imm_val", ceil(log(xlen,2)), False)': 0
+        'alternate("imm_val", ceil(log(xlen,2)), False)': 0
+  csr_comb:
+      <<: [*csr_regs_zeroes]
+
+candi:
+    config: 
+      - check ISA:=regex(.*I.*C.*)
+    opcode: 
+      c.andi: 0
+    rs1:
+      <<: *c_regs
+    val_comb:
+      <<: [*base_rs1val_sgn,*cbfmt_immval_sgn,*ifmt_val_comb_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking, *cbimm_val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+csub:
+    config: 
+      - check ISA:=regex(.*I.*C.*)
+    opcode: 
+      c.sub: 0
+    rs1:
+      <<: *c_regs
+    rs2:
+      <<: *c_regs
+    op_comb:
+      <<: *sfmt_op_comb
+    val_comb:
+      <<: [*crfmt_val_comb_sgn, *base_rs1val_sgn, *base_rs2val_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking,*rs2val_walking] 
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+cxor:
+    config: 
+      - check ISA:=regex(.*I.*C.*)
+    opcode: 
+      c.xor: 0
+    rs1:
+      <<: *c_regs
+    rs2:
+      <<: *c_regs
+    op_comb:
+      <<: *sfmt_op_comb
+    val_comb:
+      <<: [*crfmt_val_comb_sgn, *base_rs1val_sgn, *base_rs2val_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking,*rs2val_walking] 
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+cor:
+    config: 
+      - check ISA:=regex(.*I.*C.*)
+    opcode: 
+      c.or: 0
+    rs1:
+      <<: *c_regs
+    rs2:
+      <<: *c_regs
+    op_comb:
+      <<: *sfmt_op_comb
+    val_comb:
+      <<: [*crfmt_val_comb_sgn, *base_rs1val_sgn,*base_rs2val_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking,*rs2val_walking] 
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+cand:
+    config: 
+      - check ISA:=regex(.*I.*C.*)
+    opcode: 
+      c.and: 0
+    rs1:
+      <<: *c_regs
+    rs2:
+      <<: *c_regs
+    op_comb:
+      <<: *sfmt_op_comb
+    val_comb:
+      <<: [*crfmt_val_comb_sgn, *base_rs1val_sgn,*base_rs2val_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking,*rs2val_walking] 
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+csubw:
+    config: 
+      - check ISA:=regex(.*RV64.*I.*C.*)
+    opcode: 
+      c.subw: 0
+    rs1:
+      <<: *c_regs
+    rs2:
+      <<: *c_regs
+    op_comb:
+      <<: *sfmt_op_comb
+    val_comb:
+      <<: [*crfmt_val_comb_sgn, *base_rs1val_sgn, *base_rs2val_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking,*rs2val_walking] 
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+caddw:
+    config: 
+      - check ISA:=regex(.*RV64.*I.*C.*)
+    opcode: 
+      c.addw: 0
+    rs1:
+      <<: *c_regs
+    rs2:
+      <<: *c_regs
+    op_comb:
+      <<: *sfmt_op_comb
+    val_comb:
+      <<: [*crfmt_val_comb_sgn, *base_rs1val_sgn, *base_rs2val_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking,*rs2val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes] 
+
+cj:
+  config: 
+      - check ISA:=regex(.*I.*C.*) 
+  opcode: 
+    c.j: 0
+  val_comb:
+    'imm_val > 0': 0
+    'imm_val < 0': 0
+    abstract_comb:
+      'walking_ones("imm_val", 11,fltr_func =lambda x: (x>=10 and x<2030) or (x<=-8 and x>-2030),scale_func = lambda x: x*2)': 0
+      'walking_zeros("imm_val", 11,fltr_func =lambda x: (x>=10 and x<2030) or (x<=-8 and x>-2030),scale_func = lambda x: x*2)': 0
+      'alternate("imm_val",11, fltr_func =lambda x: (x>=10 and x<2030) or (x<=-8 and x>-2030) ,scale_func = lambda x: x*2)': 0
+  csr_comb:
+      <<: [*csr_regs_zeroes]
+
+cbeqz:
+  config: 
+      - check ISA:=regex(.*I.*C.*) 
+  opcode: 
+    c.beqz: 0
+  rs1:
+    <<: *c_regs
+  val_comb:
+    'rs1_val > 0 and imm_val > 0': 0
+    'rs1_val < 0 and imm_val > 0': 0
+    'rs1_val == 0 and imm_val > 0': 0
+    'rs1_val > 0 and imm_val < 0': 0
+    'rs1_val < 0 and imm_val < 0': 0
+    'rs1_val == 0 and imm_val < 0': 0
+    <<: [*base_rs1val_sgn]
+    abstract_comb:
+      <<: [*rs1val_walking]
+  csr_comb:
+      <<: [*csr_regs_zeroes]
+
+
+cbnez:
+  config: 
+      - check ISA:=regex(.*I.*C.*) 
+  opcode: 
+    c.bnez: 0
+  rs1:
+    <<: *c_regs
+  val_comb:
+    'rs1_val > 0 and imm_val > 0': 0
+    'rs1_val < 0 and imm_val > 0': 0
+    'rs1_val == 0 and imm_val > 0': 0
+    'rs1_val > 0 and imm_val < 0': 0
+    'rs1_val < 0 and imm_val < 0': 0
+    'rs1_val == 0 and imm_val < 0': 0
+    <<: [*base_rs1val_sgn]
+    abstract_comb:
+      <<: [*rs1val_walking]
+  csr_comb:
+      <<: [*csr_regs_zeroes]
+
+
+cslli:
+  config: 
+      - check ISA:=regex(.*I.*C.*) 
+  opcode: 
+    c.slli: 0
+  rd:
+    <<: *c_regs
+  val_comb:
+      'rs1_val < 0 and imm_val < xlen': 0
+      'rs1_val > 0 and imm_val < xlen': 0
+      'rs1_val == imm_val and imm_val != 0  and imm_val < xlen': 0
+      'rs1_val == (-2**(xlen-1)) and imm_val != 0 and imm_val < xlen': 0
+      'rs1_val == 0 and imm_val != 0 and imm_val < xlen': 0
+      'rs1_val == (2**(xlen-1)-1) and imm_val != 0 and imm_val < xlen': 0
+      'rs1_val == 1 and imm_val != 0 and imm_val < xlen': 0
+      abstract_comb:
+        <<: [*rs1val_walking]
+        'walking_ones("imm_val", ceil(log(xlen,2)), False)': 0
+        'walking_zeros("imm_val", ceil(log(xlen,2)), False)': 0
+        'alternate("imm_val", ceil(log(xlen,2)), False)': 0
+  csr_comb:
+      <<: [*csr_regs_zeroes]
+
+
+clwsp:
+    config: 
+      - check ISA:=regex(.*I.*C.*)
+    opcode: 
+      c.lwsp: 0
+    rd: 
+      <<: *all_regs_mx0
+    val_comb:
+        'imm_val > 0': 0
+        'imm_val == 0': 0
+        abstract_comb:
+          'walking_ones("imm_val",6,False, scale_func = lambda x: x*4)': 0
+          'walking_zeros("imm_val",6,False, scale_func = lambda x: x*4)': 0
+          'alternate("imm_val",6, False,scale_func = lambda x: x*4)': 0
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+
+cldsp:
+    config: 
+      - check ISA:=regex(.*RV64.*I.*C.*)
+    opcode: 
+      c.ldsp: 0
+    rd: 
+      <<: *all_regs_mx0
+    val_comb:
+        'imm_val > 0': 0
+        'imm_val == 0': 0
+        abstract_comb:
+          'walking_ones("imm_val",6,False, scale_func = lambda x: x*8)': 0
+          'walking_zeros("imm_val",6,False, scale_func = lambda x: x*8)': 0
+          'alternate("imm_val",6, False,scale_func = lambda x: x*8)': 0
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+
+cjr:
+  config: 
+      - check ISA:=regex(.*I.*C.*) 
+  opcode: 
+    c.jr: 0
+  rs1:
+    <<: *all_regs_mx0
+  csr_comb:
+      <<: [*csr_regs_zeroes]
+
+
+cmv:
+    config: 
+      - check ISA:=regex(.*I.*C.*)
+    opcode: 
+      c.mv: 0
+    rs2:
+      <<: *all_regs_mx0
+    rd:
+      <<: *all_regs
+    op_comb:
+      'rs2 == rd and rs2 != 0': 0
+      'rs2 != rd and rs2 != 0': 0
+    val_comb:
+      <<: [*base_rs2val_sgn]
+      abstract_comb:
+        <<: [*rs2val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+
+cadd:
+    config: 
+      - check ISA:=regex(.*I.*C.*)
+    opcode: 
+      c.add: 0
+    rs1:
+      <<: *all_regs
+    rs2:
+      <<: *all_regs_mx0
+    op_comb:
+      <<: *sfmt_op_comb
+    val_comb:
+      <<: [*crfmt_val_comb_sgn, *base_rs1val_sgn,*base_rs2val_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking,*rs2val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+
+cjalr:
+  config: 
+      - check ISA:=regex(.*I.*C.*) 
+  opcode: 
+    c.jalr: 0
+  rs1:
+    <<: *all_regs_mx0
+  csr_comb:
+      <<: [*csr_regs_zeroes] 
+
+cswsp:
+    config: 
+      - check ISA:=regex(.*I.*C.*)
+    opcode: 
+      c.swsp: 0
+    rs2: 
+      <<: *all_regs
+    val_comb:
+        'imm_val > 0': 0
+        'imm_val == 0': 0
+        <<: [  *base_rs2val_sgn]
+        abstract_comb:
+          <<: [*rs2val_walking]
+          'walking_ones("imm_val",6,False, scale_func = lambda x: x*4)': 0
+          'walking_zeros("imm_val",6,False, scale_func = lambda x: x*4)': 0
+          'alternate("imm_val",6, False,scale_func = lambda x: x*4)': 0
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+csdsp:
+    config: 
+      - check ISA:=regex(.*RV64.*I.*C.*)
+    opcode: 
+      c.sdsp: 0
+    rs2: 
+      <<: *all_regs
+    val_comb:
+        'imm_val > 0': 0
+        'imm_val == 0': 0
+        <<: [  *base_rs2val_sgn]
+        abstract_comb:
+          <<: [*rs2val_walking]
+          'walking_ones("imm_val",6,False, scale_func = lambda x: x*8)': 0
+          'walking_zeros("imm_val",6,False, scale_func = lambda x: x*8)': 0
+          'alternate("imm_val",6, False,scale_func = lambda x: x*8)': 0
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+addi:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      addi: 0
+    rs1: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *ifmt_op_comb
+    val_comb:
+      <<: [ *ifmt_val_comb_sgn, *base_rs1val_sgn, *ifmt_base_immval_sgn] 
+      abstract_comb:
+        <<: [*rs1val_walking, *ifmt_immval_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+slti:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      slti: 0
+    rs1: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *ifmt_op_comb
+    val_comb:
+      <<: [*ifmt_val_comb_sgn , *base_rs1val_sgn , *ifmt_base_immval_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking, *ifmt_immval_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+sltiu:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      sltiu: 0
+    rs1: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *ifmt_op_comb
+    val_comb:
+      <<: [*ifmt_val_comb_unsgn , *base_rs1val_unsgn , *ifmt_base_immval_unsgn]
+      abstract_comb:
+        <<: [*rs1val_walking_unsgn, *ifmt_immval_walking_unsgn]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+andi:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      andi: 0
+    rs1: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *ifmt_op_comb
+    val_comb:
+      <<: [*ifmt_val_comb_sgn , *base_rs1val_sgn , *ifmt_base_immval_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking, *ifmt_immval_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+ori:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      ori: 0
+    rs1: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *ifmt_op_comb
+    val_comb:
+      <<: [*ifmt_val_comb_sgn , *base_rs1val_sgn , *ifmt_base_immval_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking, *ifmt_immval_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+xori:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      xori: 0
+    rs1: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *ifmt_op_comb
+    val_comb:
+      <<: [*ifmt_val_comb_sgn , *base_rs1val_sgn , *ifmt_base_immval_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking, *ifmt_immval_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+slli:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      slli: 0
+    rs1: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *ifmt_op_comb
+    val_comb:
+      <<: *ifmt_base_shift
+      abstract_comb:
+        <<: [*rs1val_walking]
+        'walking_ones("imm_val", ceil(log(xlen,2)), False)': 0
+        'walking_zeros("imm_val", ceil(log(xlen,2)), False)': 0
+        'alternate("imm_val", ceil(log(xlen,2)), False)': 0
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+srai:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      srai: 0
+    rs1: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *ifmt_op_comb
+    val_comb:
+      <<: *ifmt_base_shift
+      abstract_comb:
+        <<: [*rs1val_walking]
+        'walking_ones("imm_val", ceil(log(xlen,2)), False)': 0
+        'walking_zeros("imm_val", ceil(log(xlen,2)), False)': 0
+        'alternate("imm_val", ceil(log(xlen,2)), False)': 0
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+srli:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      srli: 0
+    rs1: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *ifmt_op_comb
+    val_comb:
+      <<: *ifmt_base_shift
+      abstract_comb:
+        <<: [*rs1val_walking]
+        'walking_ones("imm_val", ceil(log(xlen,2)), False)': 0
+        'walking_zeros("imm_val", ceil(log(xlen,2)), False)': 0
+        'alternate("imm_val", ceil(log(xlen,2)), False)': 0
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+add:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      add: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *rfmt_op_comb
+    val_comb:
+      <<: [*base_rs1val_sgn , *base_rs2val_sgn , *rfmt_val_comb_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking, *rs2val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+sub:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      sub: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *rfmt_op_comb
+    val_comb:
+      <<: [*base_rs1val_sgn , *base_rs2val_sgn , *rfmt_val_comb_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking, *rs2val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+slt:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      slt: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *rfmt_op_comb
+    val_comb:
+      <<: [*base_rs1val_sgn , *base_rs2val_sgn , *rfmt_val_comb_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking, *rs2val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+sltu:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      sltu: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *rfmt_op_comb
+    val_comb:
+      <<: [*base_rs1val_unsgn , *base_rs2val_unsgn , *rfmt_val_comb_unsgn]
+      abstract_comb:
+        <<: [*rs1val_walking_unsgn, *rs2val_walking_unsgn]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+and:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      and: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *rfmt_op_comb
+    val_comb:
+      <<: [*base_rs1val_sgn , *base_rs2val_sgn , *rfmt_val_comb_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking, *rs2val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+or:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      or: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *rfmt_op_comb
+    val_comb:
+      <<: [*base_rs1val_sgn , *base_rs2val_sgn , *rfmt_val_comb_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking, *rs2val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+xor:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      xor: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *rfmt_op_comb
+    val_comb:
+      <<: [*base_rs1val_sgn , *base_rs2val_sgn , *rfmt_val_comb_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking, *rs2val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+sll:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      sll: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *rfmt_op_comb
+    val_comb:
+      <<: *rfmt_base_shift
+      abstract_comb:
+        <<: [*rs1val_walking]
+        'walking_ones("rs2_val", ceil(log(xlen,2)), False)': 0
+        'walking_zeros("rs2_val", ceil(log(xlen,2)), False)': 0
+        'alternate("rs2_val", ceil(log(xlen,2)), False)': 0
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+srl:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      srl: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *rfmt_op_comb
+    val_comb:
+      <<: *rfmt_base_shift
+      abstract_comb:
+        <<: [*rs1val_walking]
+        'walking_ones("rs2_val", ceil(log(xlen,2)), False)': 0
+        'walking_zeros("rs2_val", ceil(log(xlen,2)), False)': 0
+        'alternate("rs2_val", ceil(log(xlen,2)), False)': 0
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+sra:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      sra: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *rfmt_op_comb
+    val_comb:
+      <<: *rfmt_base_shift
+      abstract_comb:
+        <<: [*rs1val_walking]
+        'walking_ones("rs2_val", ceil(log(xlen,2)), False)': 0
+        'walking_zeros("rs2_val", ceil(log(xlen,2)), False)': 0
+        'alternate("rs2_val", ceil(log(xlen,2)), False)': 0
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+beq:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      beq: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    op_comb: 
+      <<: *sfmt_op_comb
+    val_comb:
+      <<: *bfmt_base_branch_val_align_sgn
+      abstract_comb:
+        <<: [*rs1val_walking, *rs2val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+bge:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      bge: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    op_comb: 
+      <<: *sfmt_op_comb
+    val_comb:
+      <<: *bfmt_base_branch_val_align_sgn
+      abstract_comb:
+        <<: [*rs1val_walking, *rs2val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+bgeu:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      bgeu: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    op_comb: 
+      <<: *sfmt_op_comb
+    val_comb:
+      <<: *bfmt_base_branch_val_align_unsgn
+      abstract_comb:
+        <<: [*rs1val_walking_unsgn, *rs2val_walking_unsgn]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+blt:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      blt: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    op_comb: 
+      <<: *sfmt_op_comb
+    val_comb:
+      <<: *bfmt_base_branch_val_align_sgn
+      abstract_comb:
+        <<: [*rs1val_walking, *rs2val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+bltu:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      bltu: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    op_comb: 
+      <<: *sfmt_op_comb
+    val_comb:
+      <<: *bfmt_base_branch_val_align_unsgn
+      abstract_comb:
+        <<: [*rs1val_walking_unsgn, *rs2val_walking_unsgn]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+bne:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      bne: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    op_comb: 
+      <<: *sfmt_op_comb
+    val_comb:
+      <<: *bfmt_base_branch_val_align_sgn
+      abstract_comb:
+        <<: [*rs1val_walking, *rs2val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+lhu-align:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      lhu: 0
+    rs1: 
+      <<: *all_regs_mx0
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *ifmt_op_comb
+    val_comb:
+        'ea_align == 0 and (imm_val % 4) == 0': 0
+        'ea_align == 0 and (imm_val % 4) == 1': 0
+        'ea_align == 0 and (imm_val % 4) == 2': 0
+        'ea_align == 0 and (imm_val % 4) == 3': 0
+        'ea_align == 2 and (imm_val % 4) == 0': 0
+        'ea_align == 2 and (imm_val % 4) == 1': 0
+        'ea_align == 2 and (imm_val % 4) == 2': 0
+        'ea_align == 2 and (imm_val % 4) == 3': 0
+        'imm_val > 0': 0
+        'imm_val < 0': 0
+        'imm_val == 0': 0
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+lh-align:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      lh: 0
+    rs1: 
+      <<: *all_regs_mx0
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *ifmt_op_comb
+    val_comb:
+        'ea_align == 0 and (imm_val % 4) == 0': 0
+        'ea_align == 0 and (imm_val % 4) == 1': 0
+        'ea_align == 0 and (imm_val % 4) == 2': 0
+        'ea_align == 0 and (imm_val % 4) == 3': 0
+        'ea_align == 2 and (imm_val % 4) == 0': 0
+        'ea_align == 2 and (imm_val % 4) == 1': 0
+        'ea_align == 2 and (imm_val % 4) == 2': 0
+        'ea_align == 2 and (imm_val % 4) == 3': 0
+        'imm_val > 0': 0
+        'imm_val < 0': 0
+        'imm_val == 0': 0
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+lbu-align:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      lbu: 0
+    rs1: 
+      <<: *all_regs_mx0
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *ifmt_op_comb
+    val_comb:
+        'ea_align == 0 and (imm_val % 4) == 0': 0
+        'ea_align == 0 and (imm_val % 4) == 1': 0
+        'ea_align == 0 and (imm_val % 4) == 2': 0
+        'ea_align == 0 and (imm_val % 4) == 3': 0
+        'ea_align == 2 and (imm_val % 4) == 0': 0
+        'ea_align == 2 and (imm_val % 4) == 1': 0
+        'ea_align == 2 and (imm_val % 4) == 2': 0
+        'ea_align == 2 and (imm_val % 4) == 3': 0
+        'ea_align == 1 and (imm_val % 4) == 0': 0
+        'ea_align == 1 and (imm_val % 4) == 1': 0
+        'ea_align == 1 and (imm_val % 4) == 2': 0
+        'ea_align == 1 and (imm_val % 4) == 3': 0
+        'ea_align == 3 and (imm_val % 4) == 0': 0
+        'ea_align == 3 and (imm_val % 4) == 1': 0
+        'ea_align == 3 and (imm_val % 4) == 2': 0
+        'ea_align == 3 and (imm_val % 4) == 3': 0
+        'imm_val > 0': 0
+        'imm_val < 0': 0
+        'imm_val == 0': 0
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+lb-align:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      lb: 0
+    rs1: 
+      <<: *all_regs_mx0
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *ifmt_op_comb
+    val_comb:
+        'ea_align == 0 and (imm_val % 4) == 0': 0
+        'ea_align == 0 and (imm_val % 4) == 1': 0
+        'ea_align == 0 and (imm_val % 4) == 2': 0
+        'ea_align == 0 and (imm_val % 4) == 3': 0
+        'ea_align == 2 and (imm_val % 4) == 0': 0
+        'ea_align == 2 and (imm_val % 4) == 1': 0
+        'ea_align == 2 and (imm_val % 4) == 2': 0
+        'ea_align == 2 and (imm_val % 4) == 3': 0
+        'ea_align == 1 and (imm_val % 4) == 0': 0
+        'ea_align == 1 and (imm_val % 4) == 1': 0
+        'ea_align == 1 and (imm_val % 4) == 2': 0
+        'ea_align == 1 and (imm_val % 4) == 3': 0
+        'ea_align == 3 and (imm_val % 4) == 0': 0
+        'ea_align == 3 and (imm_val % 4) == 1': 0
+        'ea_align == 3 and (imm_val % 4) == 2': 0
+        'ea_align == 3 and (imm_val % 4) == 3': 0
+        'imm_val > 0': 0
+        'imm_val < 0': 0
+        'imm_val == 0': 0
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+lw-align:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      lw: 0
+    rs1: 
+      <<: *all_regs_mx0
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *ifmt_op_comb
+    val_comb:
+        'ea_align == 0 and (imm_val % 4) == 0': 0
+        'ea_align == 0 and (imm_val % 4) == 1': 0
+        'ea_align == 0 and (imm_val % 4) == 2': 0
+        'ea_align == 0 and (imm_val % 4) == 3': 0
+        'imm_val > 0': 0
+        'imm_val < 0': 0
+        'imm_val == 0': 0
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+
+sh-align:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      sh: 0
+    rs1: 
+      <<: *all_regs_mx0
+    rs2: 
+      <<: *all_regs
+    op_comb: 
+        'rs1 != rs2': 0
+    val_comb:
+        <<: [  *base_rs2val_sgn]
+        'ea_align == 0 and (imm_val % 4) == 0': 0
+        'ea_align == 0 and (imm_val % 4) == 1': 0
+        'ea_align == 0 and (imm_val % 4) == 2': 0
+        'ea_align == 0 and (imm_val % 4) == 3': 0
+        'ea_align == 2 and (imm_val % 4) == 0': 0
+        'ea_align == 2 and (imm_val % 4) == 1': 0
+        'ea_align == 2 and (imm_val % 4) == 2': 0
+        'ea_align == 2 and (imm_val % 4) == 3': 0
+        'imm_val > 0': 0
+        'imm_val < 0': 0
+        'imm_val == 0': 0
+        abstract_comb:
+          <<: [*rs2val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+sb-align:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      sb: 0
+    rs1: 
+      <<: *all_regs_mx0
+    rs2: 
+      <<: *all_regs
+    op_comb: 
+        'rs1 != rs2': 0
+    val_comb:
+        'ea_align == 0 and (imm_val % 4) == 0': 0
+        'ea_align == 0 and (imm_val % 4) == 1': 0
+        'ea_align == 0 and (imm_val % 4) == 2': 0
+        'ea_align == 0 and (imm_val % 4) == 3': 0
+        'ea_align == 2 and (imm_val % 4) == 0': 0
+        'ea_align == 2 and (imm_val % 4) == 1': 0
+        'ea_align == 2 and (imm_val % 4) == 2': 0
+        'ea_align == 2 and (imm_val % 4) == 3': 0
+        'ea_align == 1 and (imm_val % 4) == 0': 0
+        'ea_align == 1 and (imm_val % 4) == 1': 0
+        'ea_align == 1 and (imm_val % 4) == 2': 0
+        'ea_align == 1 and (imm_val % 4) == 3': 0
+        'ea_align == 3 and (imm_val % 4) == 0': 0
+        'ea_align == 3 and (imm_val % 4) == 1': 0
+        'ea_align == 3 and (imm_val % 4) == 2': 0
+        'ea_align == 3 and (imm_val % 4) == 3': 0
+        'imm_val > 0': 0
+        'imm_val < 0': 0
+        'imm_val == 0': 0
+        <<: [  *base_rs2val_sgn]
+        abstract_comb:
+          <<: [*rs2val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+sw-align:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      sw: 0
+    rs1: 
+      <<: *all_regs_mx0
+    rs2: 
+      <<: *all_regs
+    op_comb: 
+        'rs1 != rs2': 0
+    val_comb:
+        'ea_align == 0 and (imm_val % 4) == 0': 0
+        'ea_align == 0 and (imm_val % 4) == 1': 0
+        'ea_align == 0 and (imm_val % 4) == 2': 0
+        'ea_align == 0 and (imm_val % 4) == 3': 0
+        'imm_val > 0': 0
+        'imm_val < 0': 0
+        'imm_val == 0': 0
+        <<: [  *base_rs2val_sgn]
+        abstract_comb:
+          <<: [*rs2val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+auipc:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      auipc: 0
+    rd: 
+      <<: *all_regs
+    val_comb:
+        'imm_val == 0': 0
+        'imm_val > 0': 0
+        'imm_val == ((2**20)-1)': 0
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+lui:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      lui: 0
+    rd: 
+      <<: *all_regs
+    val_comb:
+        'imm_val == 0': 0
+        'imm_val > 0': 0
+        'imm_val == ((2**20)-1)': 0
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+jal:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      jal: 0
+    rd: 
+      <<: *all_regs
+    val_comb:
+        'imm_val < 0' : 0
+        'imm_val > 0': 0
+        'imm_val == (-(2**(18)))': 0
+        'imm_val == ((2**(18)))': 0
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+jalr:
+    config: 
+      - check ISA:=regex(.*I.*)
+    opcode: 
+      jalr: 0
+    rs1:
+      <<: *all_regs_mx0
+    rd: 
+      <<: *all_regs
+    op_comb:
+      <<: *ifmt_op_comb
+    val_comb:
+      'imm_val > 0': 0
+      'imm_val < 0': 0
+      abstract_comb:
+        <<: *ifmt_immval_walking
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+mul:
+    config: 
+      - check ISA:=regex(.*I.*M.*)
+    opcode: 
+      mul: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *rfmt_op_comb
+    val_comb:
+      <<: [*base_rs1val_sgn , *base_rs2val_sgn , *rfmt_val_comb_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking, *rs2val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+mulh:
+    config: 
+      - check ISA:=regex(.*I.*M.*)
+    opcode: 
+      mulh: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *rfmt_op_comb
+    val_comb:
+      <<: [*base_rs1val_sgn , *base_rs2val_sgn , *rfmt_val_comb_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking, *rs2val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+mulhu:
+    config: 
+      - check ISA:=regex(.*I.*M.*)
+    opcode: 
+      mulhu: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *rfmt_op_comb
+    val_comb:
+      <<: [*base_rs1val_sgn , *base_rs2val_sgn , *rfmt_val_comb_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking, *rs2val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+mulhsu:
+    config: 
+      - check ISA:=regex(.*I.*M.*)
+    opcode: 
+      mulhsu: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *rfmt_op_comb
+    val_comb:
+      <<: [*base_rs1val_sgn , *base_rs2val_sgn , *rfmt_val_comb_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking, *rs2val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+div:
+    config: 
+      - check ISA:=regex(.*I.*M.*)
+    opcode: 
+      div: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *rfmt_op_comb
+    val_comb:
+      <<: [*base_rs1val_sgn , *base_rs2val_sgn , *rfmt_val_comb_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking, *rs2val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+divu:
+    config: 
+      - check ISA:=regex(.*I.*M.*)
+    opcode: 
+      divu: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *rfmt_op_comb
+    val_comb:
+      <<: [*base_rs1val_sgn , *base_rs2val_sgn , *rfmt_val_comb_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking, *rs2val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+rem:
+    config: 
+      - check ISA:=regex(.*I.*M.*)
+    opcode: 
+      rem: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *rfmt_op_comb
+    val_comb:
+      <<: [*base_rs1val_sgn , *base_rs2val_sgn , *rfmt_val_comb_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking, *rs2val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+remu:
+    config: 
+      - check ISA:=regex(.*I.*M.*)
+    opcode: 
+      remu: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *rfmt_op_comb
+    val_comb:
+      <<: [*base_rs1val_sgn , *base_rs2val_sgn , *rfmt_val_comb_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking, *rs2val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+lwu-align:
+    config: 
+      - check ISA:=regex(.*RV64.*I.*)
+    opcode: 
+      lwu: 0
+    rs1: 
+      <<: *all_regs_mx0
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *ifmt_op_comb
+    val_comb:
+        'ea_align == 0 and (imm_val % 4) == 0': 0
+        'ea_align == 0 and (imm_val % 4) == 1': 0
+        'ea_align == 0 and (imm_val % 4) == 2': 0
+        'ea_align == 0 and (imm_val % 4) == 3': 0
+        'imm_val > 0': 0
+        'imm_val < 0': 0
+        'imm_val == 0': 0
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+ld-align:
+    config: 
+      - check ISA:=regex(.*RV64.*I.*)
+    opcode: 
+      ld: 0
+    rs1: 
+      <<: *all_regs_mx0
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *ifmt_op_comb
+    val_comb:
+        'ea_align == 0 and (imm_val % 8) == 0': 0
+        'ea_align == 0 and (imm_val % 8) == 1': 0
+        'ea_align == 0 and (imm_val % 8) == 2': 0
+        'ea_align == 0 and (imm_val % 8) == 3': 0
+        'ea_align == 0 and (imm_val % 8) == 4': 0
+        'ea_align == 0 and (imm_val % 8) == 5': 0
+        'ea_align == 0 and (imm_val % 8) == 6': 0
+        'ea_align == 0 and (imm_val % 8) == 7': 0
+        'imm_val > 0': 0
+        'imm_val < 0': 0
+        'imm_val == 0': 0
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+sd-align:
+    config: 
+      - check ISA:=regex(.*RV64.*I.*)
+    opcode: 
+      sd: 0
+    rs1: 
+      <<: *all_regs_mx0
+    rs2: 
+      <<: *all_regs
+    op_comb: 
+        'rs1 != rs2': 0
+    val_comb:
+        'ea_align == 0 and (imm_val % 8) == 0': 0
+        'ea_align == 0 and (imm_val % 8) == 1': 0
+        'ea_align == 0 and (imm_val % 8) == 2': 0
+        'ea_align == 0 and (imm_val % 8) == 3': 0
+        'ea_align == 0 and (imm_val % 8) == 4': 0
+        'ea_align == 0 and (imm_val % 8) == 5': 0
+        'ea_align == 0 and (imm_val % 8) == 6': 0
+        'ea_align == 0 and (imm_val % 8) == 7': 0
+        'imm_val > 0': 0
+        'imm_val < 0': 0
+        'imm_val == 0': 0
+        <<: [  *base_rs2val_sgn]
+        abstract_comb:
+          <<: [*rs2val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+addiw:
+    config: 
+      - check ISA:=regex(.*RV64.*I.*)
+    opcode: 
+      addiw: 0
+    rs1: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *ifmt_op_comb
+    val_comb:
+      <<: [ *ifmt_val_comb_sgn, *base_rs1val_sgn, *ifmt_base_immval_sgn] 
+      abstract_comb:
+        <<: [*rs1val_walking, *ifmt_immval_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+slliw:
+    config: 
+      - check ISA:=regex(.*RV64.*I.*)
+    opcode: 
+      slliw: 0
+    rs1: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *ifmt_op_comb
+    val_comb:
+      <<: *ifmt_base_shift_32w
+      abstract_comb:
+        <<: [*rs1val_walking]
+        'walking_ones("imm_val", 5, False)': 0
+        'walking_zeros("imm_val", 5, False)': 0
+        'alternate("imm_val", 5, False)': 0
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+srliw:
+    config: 
+      - check ISA:=regex(.*RV64.*I.*)
+    opcode: 
+      srliw: 0
+    rs1: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *ifmt_op_comb
+    val_comb:
+      <<: *ifmt_base_shift_32w
+      abstract_comb:
+        <<: [*rs1val_walking]
+        'walking_ones("imm_val", 5, False)': 0
+        'walking_zeros("imm_val", 5, False)': 0
+        'alternate("imm_val", 5, False)': 0
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+sraiw:
+    config: 
+      - check ISA:=regex(.*RV64.*I.*)
+    opcode: 
+      sraiw: 0
+    rs1: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *ifmt_op_comb
+    val_comb:
+      <<: *ifmt_base_shift_32w
+      abstract_comb:
+        <<: [*rs1val_walking]
+        'walking_ones("imm_val", 5, False)': 0
+        'walking_zeros("imm_val", 5, False)': 0
+        'alternate("imm_val", 5, False)': 0
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+addw:
+    config: 
+      - check ISA:=regex(.*RV64.*I.*)
+    opcode: 
+      addw: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *rfmt_op_comb
+    val_comb:
+      <<: [*base_rs1val_sgn , *base_rs2val_sgn , *rfmt_val_comb_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking, *rs2val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+subw:
+    config: 
+      - check ISA:=regex(.*RV64.*I.*)
+    opcode: 
+      subw: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *rfmt_op_comb
+    val_comb:
+      <<: [*base_rs1val_sgn , *base_rs2val_sgn , *rfmt_val_comb_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking, *rs2val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+sllw:
+    config: 
+      - check ISA:=regex(.*RV64.*I.*)
+    opcode: 
+      sllw: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *rfmt_op_comb
+    val_comb:
+      <<: *rfmt_base_shift
+      abstract_comb:
+        <<: [*rs1val_walking]
+        'walking_ones("rs2_val", 5, False)': 0
+        'walking_zeros("rs2_val", 5, False)': 0
+        'alternate("rs2_val", 5, False)': 0
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+srlw:
+    config: 
+      - check ISA:=regex(.*RV64.*I.*)
+    opcode: 
+      srlw: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *rfmt_op_comb
+    val_comb:
+      <<: *rfmt_base_shift
+      abstract_comb:
+        <<: [*rs1val_walking]
+        'walking_ones("rs2_val", 5, False)': 0
+        'walking_zeros("rs2_val", 5, False)': 0
+        'alternate("rs2_val", 5, False)': 0
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+sraw:
+    config: 
+      - check ISA:=regex(.*RV64.*I.*)
+    opcode: 
+      sraw: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *rfmt_op_comb
+    val_comb:
+      <<: *rfmt_base_shift
+      abstract_comb:
+        <<: [*rs1val_walking]
+        'walking_ones("rs2_val", 5, False)': 0
+        'walking_zeros("rs2_val", 5, False)': 0
+        'alternate("rs2_val", 5, False)': 0
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+mulw:
+    config: 
+      - check ISA:=regex(.*RV64.*I.*M.*)
+    opcode: 
+      mulw: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *rfmt_op_comb
+    val_comb:
+      <<: [*base_rs1val_sgn , *base_rs2val_sgn , *rfmt_val_comb_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking, *rs2val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+divw:
+    config: 
+      - check ISA:=regex(.*RV64.*I.*M.*)
+    opcode: 
+      divw: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *rfmt_op_comb
+    val_comb:
+      <<: [*base_rs1val_sgn , *base_rs2val_sgn , *rfmt_val_comb_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking, *rs2val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+divuw:
+    config: 
+      - check ISA:=regex(.*RV64.*I.*M.*)
+    opcode: 
+      divuw: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *rfmt_op_comb
+    val_comb:
+      <<: [*base_rs1val_sgn , *base_rs2val_sgn , *rfmt_val_comb_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking, *rs2val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+remw:
+    config: 
+      - check ISA:=regex(.*RV64.*I.*M.*)
+    opcode: 
+      remw: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *rfmt_op_comb
+    val_comb:
+      <<: [*base_rs1val_sgn , *base_rs2val_sgn , *rfmt_val_comb_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking, *rs2val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
+remuw:
+    config: 
+      - check ISA:=regex(.*RV64.*I.*M.*)
+    opcode: 
+      remuw: 0
+    rs1: 
+      <<: *all_regs
+    rs2: 
+      <<: *all_regs
+    rd: 
+      <<: *all_regs
+    op_comb: 
+      <<: *rfmt_op_comb
+    val_comb:
+      <<: [*base_rs1val_sgn , *base_rs2val_sgn , *rfmt_val_comb_sgn]
+      abstract_comb:
+        <<: [*rs1val_walking, *rs2val_walking]
+    csr_comb:
+      <<: [*csr_regs_zeroes]
+
