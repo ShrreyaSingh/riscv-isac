@@ -635,9 +635,9 @@ def compute_per_line(instr, cgf, xlen, addr_pairs,  sig_addrs):
     if csr_commit is not None:
         for commits in csr_commit:
             if(xlen==32):
-                arch_state.csr[csr_regs[commits[1]]] = commits[2][7:]
+                arch_state.csr[csr_regs[commits[1]]] = commits[2][-8:]
             else:
-                arch_state.csr[csr_regs[commits[1]]] = commits[2]
+                arch_state.csr[csr_regs[commits[1]]] = commits[2].zfill(16)
 
 
     return cgf
@@ -666,7 +666,11 @@ def compute(trace_file, test_name, cgf, parser_name, decoder_name, detailed, xle
 
     parser_pm = pluggy.PluginManager("parser")
     parser_pm.add_hookspecs(ParserSpec)
-    parserfile = importlib.import_module(parser_name)
+    try:
+        parserfile = importlib.import_module(parser_name)
+    except ImportError:
+        logger.error('Parser name invalid!')
+        sys.exit(1)
     parserclass = getattr(parserfile, parser_name)
     parser_pm.register(parserclass())
     parser = parser_pm.hook
@@ -674,11 +678,15 @@ def compute(trace_file, test_name, cgf, parser_name, decoder_name, detailed, xle
 
     decoder_pm = pluggy.PluginManager("decoder")
     decoder_pm.add_hookspecs(DecoderSpec)
-    instructionObjectfile = importlib.import_module(decoder_name)
+    try:
+        instructionObjectfile = importlib.import_module(decoder_name)
+    except ImportError:
+        logger.error('Decoder name invalid!')
+        sys.exit(1)
     decoderclass = getattr(instructionObjectfile, "disassembler")
     decoder_pm.register(decoderclass())
     decoder = decoder_pm.hook
-    decoder.setup(arch="rv"+str(len))
+    decoder.setup(arch="rv"+str(xlen))
 
     iterator = iter(parser.__iter__()[0])
     for instrObj_temp in iterator:
