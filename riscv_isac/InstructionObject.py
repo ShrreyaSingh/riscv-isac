@@ -13,6 +13,7 @@ class instructionObject():
         rs2 = None,
         rs3 = None,
         imm = None,
+        zimm = None,
         csr = None,
         shamt = None,
         reg_commit = None,
@@ -22,7 +23,6 @@ class instructionObject():
 
         '''
             Constructor.
-
             :param instr_name: name of instruction as accepted by a standard RISC-V assembler
             :param instr_addr: pc value of the instruction
             :param rd: tuple containing the register index and registerfile (x or f) that will be updated by this instruction
@@ -41,6 +41,7 @@ class instructionObject():
         self.rs2 = rs2
         self.rs3 = rs3
         self.imm = imm
+        self.zimm = zimm
         self.csr = csr
         self.shamt = shamt
         self.reg_commit = reg_commit
@@ -61,6 +62,8 @@ class instructionObject():
             line+= ' csr: '+ str(self.csr)
         if self.imm:
             line+= ' imm: '+ str(self.imm)
+        if self.zimm:
+            line+= ' zimm: '+ str(self.zimm)
         if self.shamt:
             line+= ' shamt: '+ str(self.shamt)
         if self.reg_commit:
