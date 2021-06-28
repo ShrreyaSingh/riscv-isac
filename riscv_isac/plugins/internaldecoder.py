@@ -14,7 +14,7 @@ class disassembler():
             0b0010011: self.arithi_ops,
             0b0110011: self.arith_ops,
             0b0001111: self.fence_ops,
-            0b1110011: self.control_ops,
+            0b1110011: self.priviledged_ops,
             0b0011011: self.rv64i_arithi_ops,
             0b0111011: self.rv64i_arith_ops,
             0b0101111: self.rv64_rv32_atomic_ops,
@@ -320,7 +320,7 @@ class disassembler():
 
         return instrObj
 
-    def control_ops(self, instrObj):
+    def priviledged_ops(self, instrObj):
         instr = instrObj.instr
         funct3 = (instr & self.FUNCT3_MASK) >> 12
 
