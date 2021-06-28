@@ -20,7 +20,7 @@ import riscv_isac.plugins as plugins
 from riscv_isac.plugins.specification import *
 
 unsgn_rs1 = ['sw','sd','sh','sb','ld','lw','lwu','lh','lhu','lb', 'lbu','flw','fld','fsw','fsd'\
-        ,'bgeu', 'bltu', 'sltiu', 'sltu','c.lw','c.ld','c.lwsp','c.ldsp',\
+        'bgeu', 'bltu', 'sltiu', 'sltu','c.lw','c.ld','c.lwsp','c.ldsp',\
         'c.sw','c.sd','c.swsp','c.sdsp','mulhu','divu','remu','divuw',\
         'remuw','aes64ds','aes64dsm','aes64es','aes64esm','aes64ks2',\
         'sha256sum0','sha256sum1','sha256sig0','sha256sig1','sha512sig0',\
@@ -568,13 +568,22 @@ def compute_per_line(instr, cgf, xlen, addr_pairs,  sig_addrs):
                                 stats.covpt.append(str(coverpoints))
                                 cgf[cov_labels]['abstract_comb'][coverpoints] += 1
                     
-                    if 'csr_comb' in value and len(value['csr_comb']) != 0 and instr.csr_commit is not None:
+                    if 'csr_comb' in value and len(value['csr_comb']) != 0:
                         for coverpoints in value['csr_comb']:
                             if eval(coverpoints, {"__builtins__":None}, local_dict):
                                 if cgf[cov_labels]['csr_comb'][coverpoints] == 0:
                                     stats.ucovpt.append(str(coverpoints))
                                 stats.covpt.append(str(coverpoints))
                                 cgf[cov_labels]['csr_comb'][coverpoints] += 1
+                elif 'opcode' not in value:
+                    if 'csr_comb' in value and len(value['csr_comb']) != 0:
+                        for coverpoints in value['csr_comb']:
+                            if eval(coverpoints, {"__builtins__":None}, local_dict):
+                                if cgf[cov_labels]['csr_comb'][coverpoints] == 0:
+                                    stats.ucovpt.append(str(coverpoints))
+                                stats.covpt.append(str(coverpoints))
+                                cgf[cov_labels]['csr_comb'][coverpoints] += 1
+
         if stats.covpt:
             if mnemonic is not None :
                 stats.code_seq.append('[' + str(hex(instr.instr_addr)) + ']:' + mnemonic)
@@ -612,11 +621,8 @@ def compute_per_line(instr, cgf, xlen, addr_pairs,  sig_addrs):
                     stats.stat2.append(_log + '\n\n')
                     stats.last_meta = [store_address, store_val, stats.covpt, stats.code_seq]
                 else:
-                    if len(stats.last_meta) != 0:
-                        _log = 'Last Coverpoint : ' + str(stats.last_meta[2]) + '\n'
-                        _log += 'Last Code Sequence : \n\t-' + '\n\t-'.join(stats.last_meta[3]) + '\n'
-                    else:
-                        _log = 'Signature Update without any coverpoints hit'
+                    _log = 'Last Coverpoint : ' + str(stats.last_meta[2]) + '\n'
+                    _log += 'Last Code Sequence : \n\t-' + '\n\t-'.join(stats.last_meta[3]) + '\n'
                     _log +='Current Store : [{0}] : {1} -- Store: [{2}]:{3}\n'.format(\
                         str(hex(instr.instr_addr)), mnemonic,
                         str(hex(store_address)),
@@ -673,7 +679,7 @@ def compute(trace_file, test_name, cgf, parser_name, decoder_name, detailed, xle
         parserfile = importlib.import_module(parser_name)
     except ImportError:
         logger.error('Parser name invalid!')
-        sys.exit(1)
+        raise SystemExit
     parserclass = getattr(parserfile, parser_name)
     parser_pm.register(parserclass())
     parser = parser_pm.hook
@@ -685,7 +691,7 @@ def compute(trace_file, test_name, cgf, parser_name, decoder_name, detailed, xle
         instructionObjectfile = importlib.import_module(decoder_name)
     except ImportError:
         logger.error('Decoder name invalid!')
-        sys.exit(1)
+        raise SystemExit
     decoderclass = getattr(instructionObjectfile, "disassembler")
     decoder_pm.register(decoderclass())
     decoder = decoder_pm.hook
