@@ -18,6 +18,8 @@ import importlib
 import pluggy
 import riscv_isac.plugins as plugins
 from riscv_isac.plugins.specification import *
+import math
+import multiprocessing as mp
 
 unsgn_rs1 = ['sw','sd','sh','sb','ld','lw','lwu','lh','lhu','lb', 'lbu','flw','fld','fsw','fsd'\
         'bgeu', 'bltu', 'sltiu', 'sltu','c.lw','c.ld','c.lwsp','c.ldsp',\
@@ -235,7 +237,59 @@ def gen_report(cgf, detailed):
                     str(total_categories))
     return dict(temp)
 
-def merge_coverage(files, cgf, detailed, xlen):
+def init(l):
+    global lock
+    lock = l
+
+def merge_files(files,i,k):
+    
+    lock.acquire()
+    temp = utils.load_yaml_file(files[i])
+
+    for logs in files[i+1:i+k]:
+        logs_cov = utils.load_yaml_file(logs)
+        for cov_labels, value in logs_cov.items():
+            if cov_labels not in temp:
+                temp[cov_labels] = value
+                continue
+            for categories in value:
+                if categories not in ['cond','config','ignore','total_coverage','coverage']:
+                    if categories not in temp[cov_labels]:
+                        temp[cov_labels][categories] = value[categories]
+                        continue
+                    for coverpoints, coverage in value[categories].items():
+                        if coverpoints not in temp[cov_labels][categories]:
+                            temp[cov_labels][categories][coverpoints] = coverage
+                        else:
+                            temp[cov_labels][categories][coverpoints] += coverage
+    lock.release()
+    return files[i]
+
+def merge_fn(files, cgf,k):
+    
+    '''
+    Merges by using ceil(len(files)/k) worker processes
+
+    '''
+    l = mp.Lock()
+    p = mp.Pool(initializer=init, initargs=(l,),processes = math.ceil(len(files)/k))
+    while(len(files)>1):
+        n = len(files)
+        files = p.starmap(merge_files,[(files,i,k) for i in range(0,n,k)])
+
+    ## Checking the final file against cgf
+    logs_cov = utils.load_yaml_file(files[0])
+    for cov_labels, value in logs_cov.items():
+        for categories in value:
+            if categories not in ['cond','config','ignore','total_coverage','coverage']:
+                for coverpoints, coverage in value[categories].items():
+                    if coverpoints in cgf[cov_labels][categories]:
+                        cgf[cov_labels][categories][coverpoints] += coverage  
+
+    return cgf
+
+
+def merge_coverage(files, cgf, detailed, xlen, k):
     '''
     This function merges values of multiple CGF files and return a single cgf
     file. This can be treated analogous to how coverage files are merged
@@ -245,22 +299,18 @@ def merge_coverage(files, cgf, detailed, xlen):
     :param cgf: a cgf against which coverpoints need to be checked for.
     :param detailed: a boolean value indicating if a detailed report needs to be generated
     :param xlen: XLEN of the trace
+    :param k: Number of files to merge at a time
 
     :type file: [str]
     :type cgf: dict
     :type detailed: bool
     :type xlen: int
-
+    :type k: int
+    
     :return: a string contain the final report of the merge.
     '''
-    for logs in files:
-        logs_cov = utils.load_yaml_file(logs)
-        for cov_labels, value in logs_cov.items():
-            for categories in value:
-                if categories not in ['cond','config','ignore','total_coverage','coverage']:
-                    for coverpoints, coverage in value[categories].items():
-                        if coverpoints in cgf[cov_labels][categories]:
-                            cgf[cov_labels][categories][coverpoints] += coverage
+    if __name__ == '__main__': 
+        cgf = merge_fn(files,cgf,k)
     return gen_report(cgf, detailed)
 
 def twos_complement(val,bits):
