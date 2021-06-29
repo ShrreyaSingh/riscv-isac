@@ -244,10 +244,9 @@ def init(l):
 def merge_files(files,i,k):
     
     lock.acquire()
-    temp = utils.load_yaml_file(files[i])
-
-    for logs in files[i+1:i+k]:
-        logs_cov = utils.load_yaml_file(logs)
+    temp = files[i]
+    n = min(len(files),i+k)
+    for logs_cov in files[i+1:n]:
         for cov_labels, value in logs_cov.items():
             if cov_labels not in temp:
                 temp[cov_labels] = value
@@ -278,8 +277,8 @@ def merge_fn(files, cgf,k):
         files = p.starmap(merge_files,[(files,i,k) for i in range(0,n,k)])
 
     ## Checking the final file against cgf
-    logs_cov = utils.load_yaml_file(files[0])
-    for cov_labels, value in logs_cov.items():
+    
+    for cov_labels, value in files[0].items():
         for categories in value:
             if categories not in ['cond','config','ignore','total_coverage','coverage']:
                 for coverpoints, coverage in value[categories].items():
@@ -289,7 +288,7 @@ def merge_fn(files, cgf,k):
     return cgf
 
 
-def merge_coverage(files, cgf, detailed, xlen, k):
+def merge_coverage(inp_files, cgf, detailed, xlen, k):
     '''
     This function merges values of multiple CGF files and return a single cgf
     file. This can be treated analogous to how coverage files are merged
@@ -299,7 +298,7 @@ def merge_coverage(files, cgf, detailed, xlen, k):
     :param cgf: a cgf against which coverpoints need to be checked for.
     :param detailed: a boolean value indicating if a detailed report needs to be generated
     :param xlen: XLEN of the trace
-    :param k: Number of files to merge at a time
+    :param k: Number of files to merge at a time (>1)
 
     :type file: [str]
     :type cgf: dict
@@ -309,6 +308,9 @@ def merge_coverage(files, cgf, detailed, xlen, k):
     
     :return: a string contain the final report of the merge.
     '''
+    files = []
+    for logs in inp_files:
+        files.append(utils.load_yaml_file(logs))
     if __name__ == '__main__': 
         cgf = merge_fn(files,cgf,k)
     return gen_report(cgf, detailed)
