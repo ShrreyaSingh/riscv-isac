@@ -16,6 +16,7 @@ A covergroup is a dictionary based on the following template. These dictionaries
 * Register
 * Register Operand Combinations
 * Register/Immediate Value Combinations
+* Control and Status Registers Value Combinations
 
 Template
 --------
@@ -53,6 +54,11 @@ The template for defining a covergroup is as follows:
             abstract_comb:
                 <abscomb-str>: 0
                 <abscomb-str>: 0
+            ...
+        csr_comb:
+            <csrcomb-str>: 0
+            <csrcomb-str>: 0
+           
 
     
 Explanation
@@ -269,4 +275,26 @@ A covergroup contains the following nodes:
                     .. code-block:: python
 
                         ["rs1_val=="+str(x) for x in filter(lambda x:x%8!=0,range(2,xlen,2))]
+* **csr_comb**
+    *This node is optional.*
+    
+    This node describes the *CSRs value combination coverpoints* for the covergroup. The values stored in the CSRs in CSR's register file are available for use to describe the coverpoints. All the *Machine level* and *Supervisor level* CSRs are evaluated in the coverpoints.
+    
+     * **csrcomb-str**  
+            This string is interpreted as a valid python statement/expression which evaluates to a Boolean value. The variables available for use in the expression are as follows:
+                
+                * ``csr_name`` : The value (as of the end of previous instruction) in the CSR whose name is specified by csr_name.
+
+            Along with the above mentioned variable any valid python comparison operators can be used. An example coverpoint is elaborated below.
+
+            **Examples**
+        
+            1. A coverpoint where the value in *mcycle* register is 0.
+            
+                .. code-block:: python
+    
+                    mcycle == 0x0
+                    
+            Note: Hexadecimal numbers can be used by using the prefix ``0x`` before the hex string.
+
 
