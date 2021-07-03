@@ -21,6 +21,7 @@ from riscv_isac.plugins.specification import *
 import math
 import multiprocessing as mp
 
+
 unsgn_rs1 = ['sw','sd','sh','sb','ld','lw','lwu','lh','lhu','lb', 'lbu','flw','fld','fsw','fsd'\
         'bgeu', 'bltu', 'sltiu', 'sltu','c.lw','c.ld','c.lwsp','c.ldsp',\
         'c.sw','c.sd','c.swsp','c.sdsp','mulhu','divu','remu','divuw',\
@@ -38,7 +39,36 @@ unsgn_rs2 = ['bgeu', 'bltu', 'sltiu', 'sltu', 'sll', 'srl', 'sra','mulhu',\
         'clmulh','andn','orn','xnor','pack','packh','packu','packuw','packw',\
         'xperm.n','xperm.b', 'aes32esmi', 'aes32esi', 'aes32dsmi', 'aes32dsi',\
         'sha512sum1r','sha512sum0r','sha512sig1l','sha512sig1h','sha512sig0l','sha512sig0h']
-csr_regs={
+
+class csr_registers:
+
+    def __init__ (self, xlen):
+
+        if xlen == 32:
+            self.csr = ['00000000']*4096
+            self.csr[int('301',16)] = '40000000' # misa
+        else:
+            self.csr = ['0000000000000000']*4096
+            self.csr[int('301',16)] = '8000000000000000' # misa
+
+        # M-Mode CSRs
+        self.csr[int('F11',16)] = '00000000' # mvendorid
+        self.csr[int('306',16)] = '00000000' # mcounteren
+        self.csr[int('B00',16)] = '0000000000000000' # mcycle
+        self.csr[int('B02',16)] = '0000000000000000' # minstret
+        for i in range(29): # mphcounter 3-31, 3h-31h
+            self.csr[int('B03',16)+i] = '0000000000000000'
+            self.csr[int('B83',16)+i] = '00000000'
+        self.csr[int('320',16)] = '00000000' # mcounterinhibit
+        self.csr[int('B80',16)] = '00000000' # mcycleh
+        self.csr[int('B82',16)] = '00000000' # minstreth
+        
+        ## mtime, mtimecmp => 64 bits, platform defined memory mapping
+
+        # S-Mode CSRs
+        self.csr[int('106',16)] = '00000000' # scounteren
+
+        self.csr_regs={
             "mvendorid":int('F11',16),
             "marchid":int('F12',16),
             "mimpid":int('F13',16),
@@ -85,12 +115,25 @@ csr_regs={
             "sip": int('144',16),
             "satp": int('180',16)
         }
-for i in range(16):
-    csr_regs["pmpaddr"+str(i)] = int('3B0',16)+i
-for i in range(3,32):
-    csr_regs["mhpmcounter"+str(i)] = int('B03',16) + (i-3)
-    csr_regs["mhpmcounter"+str(i)+"h"] = int('B83',16) + (i-3)
-    csr_regs["mhpmevent"+str(i)] = int('323',16) + (i-3)
+        for i in range(16):
+            self.csr_regs["pmpaddr"+str(i)] = int('3B0',16)+i
+        for i in range(3,32):
+            self.csr_regs["mhpmcounter"+str(i)] = int('B03',16) + (i-3)
+            self.csr_regs["mhpmcounter"+str(i)+"h"] = int('B83',16) + (i-3)
+            self.csr_regs["mhpmevent"+str(i)] = int('323',16) + (i-3)
+
+    def __setitem__ (self,key,value):
+
+        if(isinstance(key, str)):
+            self.csr[self.csr_regs[key]] = value
+        else:
+            self.csr[key] = value
+    
+    def __getitem__ (self,key):
+        if(isinstance(key, str)):
+            return self.csr[self.csr_regs[key]]
+        else:
+            return self.csr[key]
 
 class archState:
     '''
@@ -118,12 +161,8 @@ class archState:
 
         if xlen == 32:
             self.x_rf = ['00000000']*32
-            self.csr = ['00000000']*4096
-            self.csr[int('301',16)] = '40000000' # misa
         else:
             self.x_rf = ['0000000000000000']*32
-            self.csr = ['0000000000000000']*4096
-            self.csr[int('301',16)] = '8000000000000000' # misa
 
         if flen == 32:
             self.f_rf = ['00000000']*32
@@ -131,23 +170,6 @@ class archState:
         else:
             self.f_rf = ['0000000000000000']*32
             self.fcsr = 0
-        
-        # M-Mode CSRs
-        self.csr[int('F11',16)] = '00000000' # mvendorid
-        self.csr[int('306',16)] = '00000000' # mcounteren
-        self.csr[int('B00',16)] = '0000000000000000' # mcycle
-        self.csr[int('B02',16)] = '0000000000000000' # minstret
-        for i in range(29): # mphcounter 3-31, 3h-31h
-            self.csr[int('B03',16)+i] = '0000000000000000'
-            self.csr[int('B83',16)+i] = '00000000'
-        self.csr[int('320',16)] = '00000000' # mcounterinhibit
-        self.csr[int('B80',16)] = '00000000' # mcycleh
-        self.csr[int('B82',16)] = '00000000' # minstreth
-        
-        ## mtime, mtimecmp => 64 bits, platform defined memory mapping
-
-        # S-Mode CSRs
-        self.csr[int('106',16)] = '00000000' # scounteren
         self.pc = 0
 
 class statistics:
@@ -242,6 +264,16 @@ def init(l):
     lock = l
 
 def merge_files(files,i,k):
+    '''
+    Merges files from i to n where n is len(files) or i+k
+
+    Arguments:
+    
+    files: List of dictionaries to be merged
+    i : beginning index to merge files on a given core
+    k : number of files to be merged
+
+    '''
     
     lock.acquire()
     temp = files[i]
@@ -264,17 +296,19 @@ def merge_files(files,i,k):
     lock.release()
     return files[i]
 
-def merge_fn(files, cgf,k):
+def merge_fn(files, cgf, p):
     
     '''
-    Merges by using ceil(len(files)/k) worker processes
-
+    Each core is assigned ceil(n/k) processes where n is len(files)
     '''
     l = mp.Lock()
-    p = mp.Pool(initializer=init, initargs=(l,),processes = math.ceil(len(files)/k))
+    pool_work = mp.Pool(initializer=init, initargs=(l,),processes = p)
     while(len(files)>1):
         n = len(files)
-        files = p.starmap(merge_files,[(files,i,k) for i in range(0,n,k)])
+        max_process = math.ceil(n/p)
+        if(max_process==1):
+            max_process = n
+        files = pool_work.starmap(merge_files,[(files,i,max_process) for i in range(0,n,max_process)])
 
     ## Checking the final file against cgf
     
@@ -288,7 +322,7 @@ def merge_fn(files, cgf,k):
     return cgf
 
 
-def merge_coverage(inp_files, cgf, detailed, xlen, k):
+def merge_coverage(inp_files, cgf, detailed, xlen, p):
     '''
     This function merges values of multiple CGF files and return a single cgf
     file. This can be treated analogous to how coverage files are merged
@@ -298,13 +332,13 @@ def merge_coverage(inp_files, cgf, detailed, xlen, k):
     :param cgf: a cgf against which coverpoints need to be checked for.
     :param detailed: a boolean value indicating if a detailed report needs to be generated
     :param xlen: XLEN of the trace
-    :param k: Number of files to merge at a time (>1)
+    :param p: Number of worker processes (>=1)
 
     :type file: [str]
     :type cgf: dict
     :type detailed: bool
     :type xlen: int
-    :type k: int
+    :type p: int
     
     :return: a string contain the final report of the merge.
     '''
@@ -312,7 +346,7 @@ def merge_coverage(inp_files, cgf, detailed, xlen, k):
     for logs in inp_files:
         files.append(utils.load_yaml_file(logs))
     if __name__ == '__main__': 
-        cgf = merge_fn(files,cgf,k)
+        cgf = merge_fn(files,cgf,p)
     return gen_report(cgf, detailed)
 
 def twos_complement(val,bits):
@@ -337,6 +371,7 @@ def compute_per_line(instr, cgf, xlen, addr_pairs,  sig_addrs):
     :type addr_pairs: (int, int)
     '''
     global arch_state
+    global csr_regfile
     global stats
 
     mnemonic = instr.mnemonic
@@ -446,60 +481,10 @@ def compute_per_line(instr, cgf, xlen, addr_pairs,  sig_addrs):
         ea_align = (rs1_val + imm_val) % 4
     if instr.instr_name in ['ld','sd']:
         ea_align = (rs1_val + imm_val) % 8
-
-    local_dict = {
-            "mvendorid": int(arch_state.csr[int('F11',16)]),
-            "marchid":int(arch_state.csr[int('F12',16)]),
-            "mimpid":int(arch_state.csr[int('F13',16)]),
-            "mhartid":int(arch_state.csr[int('F14',16)]),
-            "mstatus":int(arch_state.csr[int('300',16)]),
-            "misa":int(arch_state.csr[int('301',16)]),
-            "medeleg":int(arch_state.csr[int('302',16)]),
-            "mideleg":int(arch_state.csr[int('303',16)]),
-            "mie":int(arch_state.csr[int('304',16)]),
-            "mtvec":int(arch_state.csr[int('305',16)]),
-            "mcounteren":int(arch_state.csr[int('306',16)]),
-            "mscratch":int(arch_state.csr[int('340',16)]),
-            "mepc":int(arch_state.csr[int('341',16)]),
-            "mcause":int(arch_state.csr[int('342',16)]),
-            "mtval":int(arch_state.csr[int('343',16)]),
-            "mip":int(arch_state.csr[int('344',16)]),
-            "pmpcfg0":int(arch_state.csr[int('3A0',16)]),
-            "pmpcfg1":int(arch_state.csr[int('3A1',16)]),
-            "pmpcfg2":int(arch_state.csr[int('3A2',16)]),
-            "pmpcfg3":int(arch_state.csr[int('3A3',16)]),
-            "mcycle":int(arch_state.csr[int('B00',16)]),
-            "minstret":int(arch_state.csr[int('B02',16)]),
-            "mcycleh":int(arch_state.csr[int('B80',16)]),
-            "minstreth":int(arch_state.csr[int('B82',16)]),
-            "mcountinhibit":int(arch_state.csr[int('320',16)]),
-            "tselect":int(arch_state.csr[int('7A0',16)]),
-            "tdata1":int(arch_state.csr[int('7A1',16)]),
-            "tdata2":int(arch_state.csr[int('7A2',16)]),
-            "tdata3":int(arch_state.csr[int('7A3',16)]),
-            "dcsr":int(arch_state.csr[int('7B0',16)]),
-            "dpc":int(arch_state.csr[int('7B1',16)]),
-            "dscratch0":int(arch_state.csr[int('7B2',16)]),
-            "dscratch1":int(arch_state.csr[int('7B3',16)]),
-            "sstatus": int(arch_state.csr[int('100',16)]),
-            "sedeleg": int(arch_state.csr[int('102',16)]),
-            "sideleg": int(arch_state.csr[int('103',16)]),
-            "sie": int(arch_state.csr[int('104',16)]),
-            "stvec": int(arch_state.csr[int('105',16)]),
-            "scounteren":int(arch_state.csr[ int('106',16)]),
-            "sscratch": int(arch_state.csr[int('140',16)]),
-            "sepc": int(arch_state.csr[int('141',16)]),
-            "scause": int(arch_state.csr[int('142',16)]),
-            "stval": int(arch_state.csr[int('143',16)]),
-            "sip": int(arch_state.csr[int('144',16)]),
-            "satp": int(arch_state.csr[int('180',16)])
-            }
-    for i in range(16):
-        local_dict["pmpaddr"+str(i)] = int(arch_state.csr[int('3B0',16)+i])
-    for i in range(3,32):
-        local_dict["mhpmcounter"+str(i)] = int(arch_state.csr[int('B03',16) + (i-3)])
-        local_dict["mhpmcounter"+str(i)+"h"] = int(arch_state.csr[int('B83',16) + (i-3)])
-        local_dict["mhpmevent"+str(i)] = int(arch_state.csr[int('323',16) + (i-3)])
+    
+    local_dict={}
+    for i in csr_regfile.csr_regs:
+        local_dict[i] = csr_regfile[i]
     
     if enable :
         for cov_labels,value in cgf.items():
@@ -696,9 +681,9 @@ def compute_per_line(instr, cgf, xlen, addr_pairs,  sig_addrs):
     if csr_commit is not None:
         for commits in csr_commit:
             if(xlen==32):
-                arch_state.csr[csr_regs[commits[1]]] = commits[2][-8:]
+                csr_regfile[commits[1]] = commits[2][-8:]
             else:
-                arch_state.csr[csr_regs[commits[1]]] = commits[2].zfill(16)
+                csr_regfile[commits[1]] = commits[2].zfill(16)
 
 
     return cgf
@@ -708,7 +693,9 @@ def compute(trace_file, test_name, cgf, parser_name, decoder_name, detailed, xle
     '''Compute the Coverage'''
 
     global arch_state
+    global csr_regfile
     global stats
+
     temp = cgf.copy()
     if cov_labels:
         for groups in cgf:
@@ -723,6 +710,7 @@ def compute(trace_file, test_name, cgf, parser_name, decoder_name, detailed, xle
         sys.exit(0)
 
     arch_state = archState(xlen,32)
+    csr_regfile = csr_registers(xlen)
     stats = statistics(xlen, 32)
 
     parser_pm = pluggy.PluginManager("parser")
