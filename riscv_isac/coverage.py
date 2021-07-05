@@ -20,6 +20,7 @@ import riscv_isac.plugins as plugins
 from riscv_isac.plugins.specification import *
 import math
 import multiprocessing as mp
+from collections.abc import MutableMapping
 
 
 unsgn_rs1 = ['sw','sd','sh','sb','ld','lw','lwu','lh','lhu','lb', 'lbu','flw','fld','fsw','fsd'\
@@ -40,7 +41,7 @@ unsgn_rs2 = ['bgeu', 'bltu', 'sltiu', 'sltu', 'sll', 'srl', 'sra','mulhu',\
         'xperm.n','xperm.b', 'aes32esmi', 'aes32esi', 'aes32dsmi', 'aes32dsi',\
         'sha512sum1r','sha512sum0r','sha512sig1l','sha512sig1h','sha512sig0l','sha512sig0h']
 
-class csr_registers:
+class csr_registers(MutableMapping):
 
     def __init__ (self, xlen):
 
@@ -62,7 +63,7 @@ class csr_registers:
         self.csr[int('320',16)] = '00000000' # mcounterinhibit
         self.csr[int('B80',16)] = '00000000' # mcycleh
         self.csr[int('B82',16)] = '00000000' # minstreth
-        
+
         ## mtime, mtimecmp => 64 bits, platform defined memory mapping
 
         # S-Mode CSRs
@@ -128,7 +129,17 @@ class csr_registers:
             self.csr[self.csr_regs[key]] = value
         else:
             self.csr[key] = value
-    
+
+    def __iter__(self):
+        for entry in self.csr_regs.keys():
+            yield (entry,self.csr_regs[entry],self.csr[self.csr_regs[entry]])
+
+    def __len__(self):
+        return len(self.csr)
+
+    def __delitem__(self,key):
+        pass
+
     def __getitem__ (self,key):
         if(isinstance(key, str)):
             return self.csr[self.csr_regs[key]]
@@ -268,13 +279,13 @@ def merge_files(files,i,k):
     Merges files from i to n where n is len(files) or i+k
 
     Arguments:
-    
+
     files: List of dictionaries to be merged
     i : beginning index to merge files on a given core
     k : number of files to be merged
 
     '''
-    
+
     lock.acquire()
     temp = files[i]
     n = min(len(files),i+k)
@@ -297,7 +308,7 @@ def merge_files(files,i,k):
     return files[i]
 
 def merge_fn(files, cgf, p):
-    
+
     '''
     Each core is assigned ceil(n/k) processes where n is len(files)
     '''
@@ -311,13 +322,13 @@ def merge_fn(files, cgf, p):
         files = pool_work.starmap(merge_files,[(files,i,max_process) for i in range(0,n,max_process)])
 
     ## Checking the final file against cgf
-    
+
     for cov_labels, value in files[0].items():
         for categories in value:
             if categories not in ['cond','config','ignore','total_coverage','coverage']:
                 for coverpoints, coverage in value[categories].items():
                     if coverpoints in cgf[cov_labels][categories]:
-                        cgf[cov_labels][categories][coverpoints] += coverage  
+                        cgf[cov_labels][categories][coverpoints] += coverage
 
     return cgf
 
@@ -339,13 +350,13 @@ def merge_coverage(inp_files, cgf, detailed, xlen, p):
     :type detailed: bool
     :type xlen: int
     :type p: int
-    
+
     :return: a string contain the final report of the merge.
     '''
     files = []
     for logs in inp_files:
         files.append(utils.load_yaml_file(logs))
-    if __name__ == '__main__': 
+    if __name__ == '__main__':
         cgf = merge_fn(files,cgf,p)
     return gen_report(cgf, detailed)
 
@@ -432,7 +443,7 @@ def compute_per_line(instr, cgf, xlen, addr_pairs,  sig_addrs):
         imm_val = instr.imm
     if instr.shamt is not None:
         imm_val = instr.shamt
-    
+
     # special value conversion based on signed/unsigned operations
     if instr.instr_name in unsgn_rs1:
         rs1_val = struct.unpack(unsgn_sz, bytes.fromhex(arch_state.x_rf[rs1]))[0]
@@ -481,11 +492,11 @@ def compute_per_line(instr, cgf, xlen, addr_pairs,  sig_addrs):
         ea_align = (rs1_val + imm_val) % 4
     if instr.instr_name in ['ld','sd']:
         ea_align = (rs1_val + imm_val) % 8
-    
+
     local_dict={}
     for i in csr_regfile.csr_regs:
         local_dict[i] = csr_regfile[i]
-    
+
     if enable :
         for cov_labels,value in cgf.items():
             if cov_labels != 'datasets':
@@ -604,7 +615,7 @@ def compute_per_line(instr, cgf, xlen, addr_pairs,  sig_addrs):
                                     stats.ucovpt.append(str(coverpoints))
                                 stats.covpt.append(str(coverpoints))
                                 cgf[cov_labels]['abstract_comb'][coverpoints] += 1
-                    
+
                     if 'csr_comb' in value and len(value['csr_comb']) != 0:
                         for coverpoints in value['csr_comb']:
                             if eval(coverpoints, {"__builtins__":None}, local_dict):
@@ -676,14 +687,12 @@ def compute_per_line(instr, cgf, xlen, addr_pairs,  sig_addrs):
             arch_state.x_rf[int(commitvalue[1])] =  str(commitvalue[2][2:])
         elif rd_type == 'f':
             arch_state.f_rf[int(commitvalue[1])] =  str(commitvalue[2][2:])
-    
+
     csr_commit = instr.csr_commit
     if csr_commit is not None:
         for commits in csr_commit:
-            if(xlen==32):
-                csr_regfile[commits[1]] = commits[2][-8:]
-            else:
-                csr_regfile[commits[1]] = commits[2].zfill(16)
+            if(commits[0]=="CSR"):
+                csr_regfile[commits[1]] = str(commits[2][2:])
 
 
     return cgf
