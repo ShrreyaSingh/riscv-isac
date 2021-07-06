@@ -80,7 +80,7 @@ A covergroup contains the following nodes:
 .. _riscof: https://riscof.readthedocs.io/en/latest/index.html 
 
 * **opcode**
-    *This node is mandatory in every covergroup.*
+    *This node is mandatory for all covergroups except covergroups pertaining to CSR coverpoints (it's optional over here).*
     
     This node describes the *opcode coverpoints* necessary for the covergroup. Each *opcode* is treated as a valid coverpoint and the arguments of the corresponding instruction are used to update the rest of the coverpoint types.  
 
@@ -278,7 +278,7 @@ A covergroup contains the following nodes:
 * **csr_comb**
     *This node is optional.*
     
-    This node describes the *CSRs value combination coverpoints* for the covergroup. The values stored in the CSRs in CSR's register file are available for use to describe the coverpoints. All the *Machine level* and *Supervisor level* CSRs are evaluated in the coverpoints.
+    This node describes the *CSRs value combination coverpoints* for the covergroup. The values stored in the CSRs in CSR's register file are available for use to describe the coverpoints. All the *Machine level* and *Supervisor level* CSRs are evaluated in the coverpoints. If for a particular covergroup, the opcode node is present, then the CSR coverpoints are updated only if the opcode matches. If the opcode node isn't present in a covergroup, then it's updated for all the coverpoints in that covergroup.
     
      * **csrcomb-str**  
             This string is interpreted as a valid python statement/expression which evaluates to a Boolean value. The variables available for use in the expression are as follows:
