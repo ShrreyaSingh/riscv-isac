@@ -80,7 +80,7 @@ A covergroup contains the following nodes:
 .. _riscof: https://riscof.readthedocs.io/en/latest/index.html 
 
 * **opcode**
-    *This node is mandatory for all covergroups except covergroups pertaining to CSR coverpoints (it's optional over here).*
+    *This node is mandatory for all covergroups except covergroups pertaining to CSR coverpoints (it's optional in this case).*
     
     This node describes the *opcode coverpoints* necessary for the covergroup. Each *opcode* is treated as a valid coverpoint and the arguments of the corresponding instruction are used to update the rest of the coverpoint types.  
 
