@@ -134,16 +134,15 @@ def coverage(elf,trace_file,cgf_file,detailed,parser_name, decoder_name, parser_
     )
 @click.option('--xlen','-x',type=click.Choice(['32','64']),default='32',help="XLEN value for the ISA.")
 def merge(files,detailed,p,cgf_file,output_file,xlen):
-    if __name__ == '__main__': 
-        rpt = cov.merge_coverage(files,expand_cgf(cgf_file,int(xlen)),detailed,int(xlen),p)
-        if output_file is None:
-            logger.info('Coverage Report:')
-            logger.info('\n\n' + rpt)
-        else:
-            rpt_file = open(output_file,'w')
-            utils.dump_yaml(rpt,rpt_file)
-            rpt_file.close()
-            logger.info('Report File Generated : ' + str(output_file))
+    rpt = cov.merge_coverage(files,expand_cgf(cgf_file,int(xlen)),detailed,int(xlen),p)
+    if output_file is None:
+        logger.info('Coverage Report:')
+        logger.info('\n\n' + rpt)
+    else:
+        rpt_file = open(output_file,'w')
+        utils.dump_yaml(rpt,rpt_file)
+        rpt_file.close()
+        logger.info('Report File Generated : ' + str(output_file))
 
 
 
