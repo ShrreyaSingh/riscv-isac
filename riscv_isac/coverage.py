@@ -294,7 +294,7 @@ def merge_files(files,i,k):
                         else:
                             temp[cov_labels][categories][coverpoints] += coverage
     lock.release()
-    return files[i]
+    return temp
 
 def merge_fn(files, cgf, p):
     
@@ -339,16 +339,16 @@ def merge_coverage(inp_files, cgf, detailed, xlen, p):
     files = []
     for logs in inp_files:
         files.append(utils.load_yaml_file(logs))
-    if __name__ == '__main__': 
-        temp = merge_fn(files,cgf,p)
-        for cov_labels, value in temp.items():
-            for categories in value:
-                if categories not in ['cond','config','ignore','total_coverage','coverage']:
-                    for coverpoints, coverage in value[categories].items():
-                        if coverpoints in cgf[cov_labels][categories]:
-                            cgf[cov_labels][categories][coverpoints] += coverage  
+    
+    temp = merge_fn(files,cgf,p)
+    for cov_labels, value in temp.items():
+        for categories in value:
+            if categories not in ['cond','config','ignore','total_coverage','coverage']:
+                for coverpoints, coverage in value[categories].items():
+                    if coverpoints in cgf[cov_labels][categories]:
+                        cgf[cov_labels][categories][coverpoints] += coverage  
 
-        return gen_report(cgf, detailed)
+    return gen_report(cgf, detailed)
 
 def twos_complement(val,bits):
     if (val & (1 << (bits - 1))) != 0:
