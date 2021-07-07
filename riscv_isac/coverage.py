@@ -491,7 +491,7 @@ def compute_per_line(instr, cgf, xlen, addr_pairs,  sig_addrs):
 
     local_dict={}
     for i in csr_regfile.csr_regs:
-        local_dict[i] = csr_regfile[i]
+        local_dict[i] = int(csr_regfile[i],16)
 
     local_dict['xlen'] = xlen
 
