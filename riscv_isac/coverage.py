@@ -322,7 +322,7 @@ def merge_fn(files, cgf, p):
     return files[0]
 
 
-def merge_coverage(inp_files, cgf, detailed, xlen, p):
+def merge_coverage(inp_files, cgf, detailed, xlen, p=1):
     '''
     This function merges values of multiple CGF files and return a single cgf
     file. This can be treated analogous to how coverage files are merged
@@ -492,6 +492,8 @@ def compute_per_line(instr, cgf, xlen, addr_pairs,  sig_addrs):
     local_dict={}
     for i in csr_regfile.csr_regs:
         local_dict[i] = csr_regfile[i]
+
+    local_dict['xlen'] = xlen
 
     if enable :
         for cov_labels,value in cgf.items():

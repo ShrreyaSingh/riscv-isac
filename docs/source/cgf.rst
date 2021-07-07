@@ -278,14 +278,20 @@ A covergroup contains the following nodes:
 * **csr_comb**
     *This node is optional.*
     
-    This node describes the *CSRs value combination coverpoints* for the covergroup. The values stored in the CSRs in CSR's register file are available for use to describe the coverpoints. All the *Machine level* and *Supervisor level* CSRs are evaluated in the coverpoints. If for a particular covergroup, the opcode node is present, then the CSR coverpoints are updated only if the opcode matches. If the opcode node isn't present in a covergroup, then it's updated for all the coverpoints in that covergroup.
-    
-     * **csrcomb-str**  
+    This node describes the *CSRs value combination coverpoints* for a covergroup. ISAC maintains a copy of the architectural csrs, which thereby allows the user to describe the coverpoints based on csrs and their values. All the *Machine level* and *Supervisor level* CSRs are currently supported. If for a particular covergroup, the opcode node is present/not-empty, then the CSR coverpoints are evaluated and updated only for instructions in the log whose opcode matches. If however, the opcode node is not-present/empty in a covergroup, then the csrs coverpoints are evaluated and updated for any event/instruction. 
+
+        * **csrcomb-str**  
             This string is interpreted as a valid python statement/expression which evaluates to a Boolean value. The variables available for use in the expression are as follows:
                 
                 * ``csr_name`` : The value (as of the end of previous instruction) in the CSR whose name is specified by csr_name.
 
+                * ``xlen`` : The length of the regsiters in the machine.
+
             Along with the above mentioned variable any valid python comparison operators can be used. An example coverpoint is elaborated below.
+
+            .. note:: The csr coverage reporting is accurate only if a change in the csr is captured in the log.    
+
+            .. tip:: Bit masks and shifts can be used to access the subfields in the csrs. 
 
             **Examples**
         
@@ -296,5 +302,18 @@ A covergroup contains the following nodes:
                     mcycle == 0x0
                     
             Note: Hexadecimal numbers can be used by using the prefix ``0x`` before the hex string.
+
+            2. A coverpoint which checks whether the *mxl* field of *misa* register is 1.
+        
+                .. code-block:: python
+
+                    misa >> (xlen-2) == 0x01
+
+            3. A coverpoint which checks whether the *mie* field of *mstatus* register is 1.
+
+                .. code-block:: python
+
+                    mstatus && (0x8) == 0x8
+
 
 
