@@ -283,7 +283,7 @@ def merge_files(files,i,k):
     '''
 
     temp = files[i]
-    n = min(len(files)-i,i+k)
+    n = min(len(files),i+k)
     for logs_cov in files[i+1:n]:
         for cov_labels, value in logs_cov.items():
             if cov_labels not in temp:
